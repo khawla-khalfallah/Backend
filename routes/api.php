@@ -14,6 +14,11 @@ use App\Http\Controllers\PdfController;
 use App\Http\Controllers\SeanceController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\InscritController;
+use App\Http\Controllers\AuthController;
+
+use App\Http\Controllers\TestController;
+
+
 
 Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'index']);          // GET /api/users
@@ -55,6 +60,10 @@ Route::prefix('formations')->group(function () {
     Route::get('/{id}', [FormationController::class, 'show']);        // GET /api/formations/{id}
     Route::put('/{id}', [FormationController::class, 'update']);      // PUT /api/formations/{id}
     Route::delete('/{id}', [FormationController::class, 'destroy']);  // DELETE /api/formations/{id}
+    
+    //Nouvelle route pour lister les apprenants inscrits
+    Route::get('/{id}/apprenants', [FormationController::class, 'getApprenants']);
+    
 });
 
 
@@ -75,3 +84,19 @@ Route::apiResource('pdfs', PdfController::class);
 Route::apiResource('seances', SeanceController::class);
 
 Route::apiResource('videos', VideoController::class);
+
+Route::post('/login', [AuthController::class, 'login']);
+
+// Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+// Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user']);
+// Route::middleware('auth:sanctum')->get('/tables', [TestBaseController::class, 'listTables']);
+// Route::get('/primary-keys', [TestBaseController::class, 'listPrimaryKeys']);
+
+
+
+
+Route::get('/tables', [TestController::class, 'listTables']);
+Route::get('/primary-keys', [TestController::class, 'listPrimaryKeys']);
+Route::get('/chercher-apprenant', [ApprenantController::class, 'chercherParNom']);
+Route::get('/chercher-formation', [FormationController::class, 'chercherParTitre']);
+Route::get('/formations/{id}/apprenants', [FormationController::class, 'getApprenants']);

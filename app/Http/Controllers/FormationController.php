@@ -54,4 +54,34 @@ class FormationController extends Controller
         Formation::destroy($id);
         return response()->json(['message' => 'Formation supprimée avec succès.']);
     }    
+    
+
+
+
+
+    
+
+    // Renvoie les apprenants inscrits à une formation donnée
+    public function getApprenants($id)
+    {
+        $formation = Formation::with('apprenants.user')->find($id);
+
+        if (!$formation) {
+            return response()->json(['message' => 'Formation non trouvée'], 404);
+        }
+
+        return response()->json($formation->apprenants);
+    }
+    public function chercherParTitre(Request $request)
+    {
+        $titre = $request->query('titre');
+
+        $formation = Formation::where('titre', 'LIKE', "%$titre%")->first();
+
+        if ($formation) {
+            return response()->json($formation);
+        } else {
+            return response()->json(['message' => 'Formation non trouvée'], 404);
+        }
+    }
 }

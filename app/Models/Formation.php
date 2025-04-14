@@ -15,12 +15,14 @@ class Formation extends Model
     {
         return $this->belongsTo(Formateur::class, 'formateur_id');
     }
-
+    // public function apprenants()
+    // {
+    //     return $this->belongsToMany(Apprenant::class, 'inscrits', 'formation_id', 'apprenant_id');
+    // }
     public function apprenants()
     {
-        return $this->belongsToMany(Apprenant::class, 'inscrits', 'formation_id', 'apprenant_id');
+        return $this->belongsToMany(Apprenant::class, 'inscrits', 'formation_id', 'apprenant_id', 'id', 'user_id');
     }
-
     public function examens()
     {
         return $this->hasMany(Examen::class, 'formation_id');

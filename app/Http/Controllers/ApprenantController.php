@@ -52,4 +52,28 @@ class ApprenantController extends Controller
         Apprenant::destroy($id);
         return response()->json(['message' => 'Apprenant supprimé avec succès']);
     }
+
+
+
+
+
+
+    public function chercherParNom(Request $request)
+    {
+        $nom = $request->query('nom');
+    
+        $apprenant = Apprenant::with('user')
+            ->whereHas('user', function ($query) use ($nom) {
+                $query->where('nom', 'like', "%$nom%")
+                      ->orWhere('prenom', 'like', "%$nom%");
+            })
+            ->first();
+    
+        if (!$apprenant) {
+            return response()->json(['message' => 'Aucun apprenant trouvé'], 404);
+        }
+    
+        return response()->json($apprenant);
+    }
+    
 }
