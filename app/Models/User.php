@@ -27,5 +27,9 @@ class User extends Model
     {
         return $this->hasOne(Recruteur::class);
     }
+    public function administrateur()
+    {
+        return $this->hasOne(Administrateur::class);
+    }
 }
 

@@ -16,6 +16,7 @@ use App\Http\Controllers\VideoController;
 use App\Http\Controllers\InscritController;
 use App\Http\Controllers\AuthController;
 
+
 use App\Http\Controllers\TestController;
 
 
@@ -59,11 +60,7 @@ Route::prefix('formations')->group(function () {
     Route::post('/', [FormationController::class, 'store']);          // POST /api/formations
     Route::get('/{id}', [FormationController::class, 'show']);        // GET /api/formations/{id}
     Route::put('/{id}', [FormationController::class, 'update']);      // PUT /api/formations/{id}
-    Route::delete('/{id}', [FormationController::class, 'destroy']);  // DELETE /api/formations/{id}
-    
-    //Nouvelle route pour lister les apprenants inscrits
-    Route::get('/{id}/apprenants', [FormationController::class, 'getApprenants']);
-    
+    Route::delete('/{id}', [FormationController::class, 'destroy']);  // DELETE /api/formations/{id}    
 });
 
 
@@ -75,22 +72,30 @@ Route::prefix('inscrits')->group(function () {
 });
 
 Route::apiResource('certificats', CertificatController::class);
-
-
 Route::apiResource('examens', ExamenController::class);
-
 Route::apiResource('pdfs', PdfController::class);
-
 Route::apiResource('seances', SeanceController::class);
-
 Route::apiResource('videos', VideoController::class);
+Route::apiResource('administrateurs', AdministrateurController::class);
+
+
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->get('/profile', [UserController::class, 'me']);
+Route::get('/apprenants/{id}/formations', [InscritController::class, 'getFormationsByApprenant']);
 
-// Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-// Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user']);
-// Route::middleware('auth:sanctum')->get('/tables', [TestBaseController::class, 'listTables']);
-// Route::get('/primary-keys', [TestBaseController::class, 'listPrimaryKeys']);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

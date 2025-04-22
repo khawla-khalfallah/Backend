@@ -16,17 +16,48 @@ class FormateurController extends Controller
       }
   
       // Créer un formateur
-      public function store(Request $request)
-      {
-          $validated = $request->validate([
-              'user_id' => 'required|exists:users,id|unique:formateurs,user_id',
-              'specialite' => 'nullable|string|max:100',
-              'bio' => 'nullable|string',
-          ]);
+    //   public function store(Request $request)
+    //   {
+    //       $validated = $request->validate([
+    //           'user_id' => 'required|exists:users,id|unique:formateurs,user_id',
+    //           'specialite' => 'nullable|string|max:100',
+    //           'bio' => 'nullable|string',
+    //       ]);
   
-          $formateur = Formateur::create($validated);
-          return response()->json($formateur, 201);
-      }
+    //       $formateur = Formateur::create($validated);
+    //       return response()->json($formateur, 201);
+    //   }
+            // Créer un formateur (avec création de user)
+            public function store(Request $request)
+            {
+                $validated = $request->validate([
+                    'nom' => 'required|string|max:50',
+                    'prenom' => 'required|string|max:50',
+                    'email' => 'required|email|unique:users,email',
+                    'password' => 'required|string|min:6',
+                    'specialite' => 'nullable|string|max:100',
+                    'bio' => 'nullable|string',
+                ]);
+
+                // Création du user
+                $user = User::create([
+                    'nom' => $validated['nom'],
+                    'prenom' => $validated['prenom'],
+                    'email' => $validated['email'],
+                    'password' => bcrypt($validated['password']),
+                    'role' => 'formateur',
+                ]);
+
+                // Création du formateur lié à ce user
+                $formateur = Formateur::create([
+                    'user_id' => $user->id,
+                    'specialite' => $validated['specialite'] ?? null,
+                    'bio' => $validated['bio'] ?? null,
+                ]);
+
+                return response()->json($formateur->load('user'), 201);
+            }
+
   
       // Afficher un formateur spécifique
       public function show($id)
@@ -48,7 +79,8 @@ class FormateurController extends Controller
           $formateur->update($validated);
           return response()->json($formateur);
       }
-  
+            
+    
       // Supprimer un formateur
       public function destroy($id)
       {

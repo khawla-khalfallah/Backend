@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Apprenant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use App\Models\User;
+
 
 class ApprenantController extends Controller
 {
@@ -15,17 +17,41 @@ class ApprenantController extends Controller
     }
 
     // Créer un apprenant
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'user_id' => 'required|exists:users,id|unique:apprenants,user_id',
+    //         'niveau_etude' => 'nullable|string|max:50',
+    //     ]);
+
+    //     $apprenant = Apprenant::create($validated);
+    //     return response()->json($apprenant, 201);
+    // }
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id|unique:apprenants,user_id',
-            'niveau_etude' => 'nullable|string|max:50',
+            'nom' => 'required|string',
+            'prenom' => 'required|string',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:6',
+            'niveau_etude' => 'required|string',
         ]);
-
-        $apprenant = Apprenant::create($validated);
-        return response()->json($apprenant, 201);
+    
+        $user = User::create([
+            'nom' => $validated['nom'],
+            'prenom' => $validated['prenom'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => 'apprenant'
+        ]);
+    
+        $apprenant = Apprenant::create([
+            'user_id' => $user->id,
+            'niveau_etude' => $validated['niveau_etude']
+        ]);
+    
+        return response()->json(['message' => 'Apprenant créé', 'apprenant' => $apprenant], 201);
     }
-
     // Voir un apprenant
     public function show($id)
     {
@@ -47,11 +73,45 @@ class ApprenantController extends Controller
     }
 
     // Supprimer un apprenant
+    // public function destroy($id)
+    // {
+    //     Apprenant::destroy($id);
+    //     return response()->json(['message' => 'Apprenant supprimé avec succès']);
+    // }
     public function destroy($id)
     {
-        Apprenant::destroy($id);
-        return response()->json(['message' => 'Apprenant supprimé avec succès']);
+        try {
+            $apprenant = Apprenant::with('user')->findOrFail($id);
+    
+            // Supprimer l'utilisateur associé
+            if ($apprenant->user) {
+                $apprenant->user->delete();
+            }
+    
+            // Supprimer l'apprenant
+            $apprenant->delete();
+    
+            return response()->json(['message' => 'Apprenant supprimé avec succès']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la suppression',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+    
+    
+
+
+
+
+
+
+
+
+
+
+
 
 
 
