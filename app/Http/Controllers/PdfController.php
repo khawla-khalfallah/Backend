@@ -19,7 +19,7 @@ class PdfController extends Controller {
          // Validation des champs
     $validated = $request->validate([
         'titre' => 'required|string|max:255',
-        'fichier' => 'required|file|mimes:pdf|max:10240', // Limite à 10MB
+        'fichier' => 'required|file|mimes:pdf|max:51200', 
         'formation_id' => 'required|exists:formations,id',
     ]);
 

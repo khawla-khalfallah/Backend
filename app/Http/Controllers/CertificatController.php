@@ -38,6 +38,8 @@ class CertificatController extends Controller {
         ]);
 
         $certificat->update($validated);
+         // Recharge la relation apprenant + user pour affichage correct
+        $certificat->load('apprenant.user');
         return response()->json($certificat);
     }
 

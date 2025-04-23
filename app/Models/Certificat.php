@@ -11,6 +11,6 @@ class Certificat extends Model {
     protected $fillable = ['date_obtention', 'apprenant_id'];
 
     public function apprenant() {
-        return $this->belongsTo(Apprenant::class);
+        return $this->belongsTo(Apprenant::class, 'apprenant_id', 'user_id');
     }
 }
