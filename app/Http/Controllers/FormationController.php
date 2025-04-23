@@ -9,9 +9,9 @@ class FormationController extends Controller
 {
     public function index()
     {
-        return Formation::with(['formateur', 'apprenants', 'examens', 'seances', 'videos', 'pdfs'])->get();
+        return Formation::with(['formateur', 'apprenants', 'examens', 'seances', 'videos', 'pdfs','formateur.user'])->get();
     }
-
+    
     public function store(Request $request)
     {
         $validated = $request->validate([

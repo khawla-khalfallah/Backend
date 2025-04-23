@@ -82,9 +82,24 @@ class FormateurController extends Controller
             
     
       // Supprimer un formateur
-      public function destroy($id)
-      {
-          Formateur::destroy($id);
-          return response()->json(['message' => 'Formateur supprimé avec succès']);
-      }
+    //   public function destroy($id)
+    //   {
+    //       Formateur::destroy($id);
+    //       return response()->json(['message' => 'Formateur supprimé avec succès']);
+    //   }
+    public function destroy($id)
+    {
+        $formateur = Formateur::findOrFail($id);
+    
+        // Supprimer l'utilisateur associé
+        if ($formateur->user) {
+            $formateur->user->delete();
+        }
+    
+        // Supprimer le formateur (si cascade pas active)
+        $formateur->delete();
+    
+        return response()->json(['message' => 'Formateur et utilisateur supprimés avec succès']);
+    }
+    
 }

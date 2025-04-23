@@ -43,6 +43,7 @@ Route::prefix('formateurs')->group(function () {
     Route::get('/{id}', [FormateurController::class, 'show']);        // GET /api/formateurs/{id}
     Route::put('/{id}', [FormateurController::class, 'update']);      // PUT /api/formateurs/{id}
     Route::delete('/{id}', [FormateurController::class, 'destroy']);  // DELETE /api/formateurs/{id}
+    
 });
 
 
@@ -52,6 +53,7 @@ Route::prefix('recruteurs')->group(function () {
     Route::get('/{id}', [RecruteurController::class, 'show']);        // GET /api/recruteurs/{id}
     Route::put('/{id}', [RecruteurController::class, 'update']);      // PUT /api/recruteurs/{id}
     Route::delete('/{id}', [RecruteurController::class, 'destroy']);  // DELETE /api/recruteurs/{id}
+    
 });
 
 
