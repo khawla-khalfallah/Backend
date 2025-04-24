@@ -72,7 +72,30 @@ class InscritController extends Controller
     {
         return Inscrit::with(['apprenant.user', 'formation'])->findOrFail($id);
     }
-
+    public function update(Request $request, $id)
+    {
+        $inscrit = Inscrit::findOrFail($id);
+    
+        $validated = $request->validate([
+            'apprenant_id' => 'required|exists:apprenants,user_id',
+            'formation_id' => 'required|exists:formations,id',
+        ]);
+    
+        // Vérifie que la nouvelle combinaison apprenant/formation n’existe pas déjà
+        $exists = Inscrit::where('apprenant_id', $validated['apprenant_id'])
+            ->where('formation_id', $validated['formation_id'])
+            ->where('id_inscrit', '!=', $id)
+            ->exists();
+    
+        if ($exists) {
+            return response()->json(['message' => 'Cette inscription existe déjà.'], 409);
+        }
+    
+        $inscrit->update($validated);
+    
+        return response()->json(['message' => 'Inscription modifiée.', 'inscrit' => $inscrit]);
+    }
+    
     public function destroy($id)
     {
         $inscrit = Inscrit::findOrFail($id);

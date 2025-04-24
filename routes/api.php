@@ -71,6 +71,8 @@ Route::prefix('inscrits')->group(function () {
     Route::post('/', [InscritController::class, 'store']);           // POST /api/inscrits
     Route::get('/{id}', [InscritController::class, 'show']);         // GET /api/inscrits/{id}
     Route::delete('/{id}', [InscritController::class, 'destroy']);   // DELETE /api/inscrits/{id}
+    Route::put('/{id}', [InscritController::class, 'update']); 
+
 });
 
 Route::apiResource('certificats', CertificatController::class);
