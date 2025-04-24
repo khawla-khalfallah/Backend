@@ -204,9 +204,11 @@ class UserController extends Controller
         return response()->json(['message' => 'Utilisateur et profil associé supprimés avec succès']);
     }
     
-    public function me(Request $request)
-    {
-        return response()->json($request->user());
-    }
+   public function me(Request $request)
+{
+    $user = $request->user()->load(['apprenant', 'formateur', 'recruteur', 'administrateur']);
+    return response()->json($user);
+}
+
 
 }

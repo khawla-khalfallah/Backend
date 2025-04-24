@@ -60,18 +60,51 @@ class ApprenantController extends Controller
     }
 
     // Modifier un apprenant
+    // public function update(Request $request, $id)
+    // {
+    //     $apprenant = Apprenant::findOrFail($id);
+
+    //     $validated = $request->validate([
+    //         'niveau_etude' => 'nullable|string|max:50',
+    //     ]);
+
+    //     $apprenant->update($validated);
+    //     return response()->json($apprenant);
+    // }
     public function update(Request $request, $id)
     {
-        $apprenant = Apprenant::findOrFail($id);
-
+        $apprenant = Apprenant::with('user')->findOrFail($id);
+    
         $validated = $request->validate([
+            'nom' => 'nullable|string|max:255',
+            'prenom' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . $apprenant->user->id,
+            'password' => 'nullable|string|min:6',
             'niveau_etude' => 'nullable|string|max:50',
         ]);
-
-        $apprenant->update($validated);
-        return response()->json($apprenant);
+    
+        // Mise à jour des données de l'utilisateur
+        $user = $apprenant->user;
+    
+        if (isset($validated['nom'])) $user->nom = $validated['nom'];
+        if (isset($validated['prenom'])) $user->prenom = $validated['prenom'];
+        if (isset($validated['email'])) $user->email = $validated['email'];
+        if (isset($validated['password'])) $user->password = bcrypt($validated['password']);
+        $user->save();
+    
+        // Mise à jour de l'apprenant
+        if (isset($validated['niveau_etude'])) {
+            $apprenant->niveau_etude = $validated['niveau_etude'];
+            $apprenant->save();
+        }
+    
+        return response()->json([
+            'message' => 'Profil mis à jour avec succès.',
+            'user' => $user,
+            'apprenant' => $apprenant
+        ]);
     }
-
+    
     // Supprimer un apprenant
     // public function destroy($id)
     // {

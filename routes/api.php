@@ -21,7 +21,7 @@ use App\Http\Controllers\TestController;
 
 
 
-Route::prefix('users')->group(function () {
+Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserController::class, 'index']);          // GET /api/users
     Route::post('/', [UserController::class, 'store']);         // POST /api/users
     Route::get('/{id}', [UserController::class, 'show']);       // GET /api/users/{id}
@@ -29,7 +29,7 @@ Route::prefix('users')->group(function () {
     Route::delete('/{id}', [UserController::class, 'destroy']); // DELETE /api/users/{id}
 });
 
-Route::prefix('apprenants')->group(function () {
+Route::prefix('apprenants')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [ApprenantController::class, 'index']);         // GET /api/apprenants
     Route::post('/', [ApprenantController::class, 'store']);        // POST /api/apprenants
     Route::get('/{id}', [ApprenantController::class, 'show']);      // GET /api/apprenants/{id}
@@ -37,7 +37,7 @@ Route::prefix('apprenants')->group(function () {
     Route::delete('/{id}', [ApprenantController::class, 'destroy']); // DELETE /api/apprenants/{id}
 });
 
-Route::prefix('formateurs')->group(function () {
+Route::prefix('formateurs')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [FormateurController::class, 'index']);           // GET /api/formateurs
     Route::post('/', [FormateurController::class, 'store']);          // POST /api/formateurs
     Route::get('/{id}', [FormateurController::class, 'show']);        // GET /api/formateurs/{id}
@@ -47,7 +47,7 @@ Route::prefix('formateurs')->group(function () {
 });
 
 
-Route::prefix('recruteurs')->group(function () {
+Route::prefix('recruteurs')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [RecruteurController::class, 'index']);           // GET /api/recruteurs
     Route::post('/', [RecruteurController::class, 'store']);          // POST /api/recruteurs
     Route::get('/{id}', [RecruteurController::class, 'show']);        // GET /api/recruteurs/{id}
@@ -57,7 +57,7 @@ Route::prefix('recruteurs')->group(function () {
 });
 
 
-Route::prefix('formations')->group(function () {
+Route::prefix('formations')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [FormationController::class, 'index']);           // GET /api/formations
     Route::post('/', [FormationController::class, 'store']);          // POST /api/formations
     Route::get('/{id}', [FormationController::class, 'show']);        // GET /api/formations/{id}
@@ -66,7 +66,7 @@ Route::prefix('formations')->group(function () {
 });
 
 
-Route::prefix('inscrits')->group(function () {
+Route::prefix('inscrits')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [InscritController::class, 'index']);            // GET /api/inscrits
     Route::post('/', [InscritController::class, 'store']);           // POST /api/inscrits
     Route::get('/{id}', [InscritController::class, 'show']);         // GET /api/inscrits/{id}
