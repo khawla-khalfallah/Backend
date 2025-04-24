@@ -107,3 +107,5 @@ Route::get('/primary-keys', [TestController::class, 'listPrimaryKeys']);
 Route::get('/chercher-apprenant', [ApprenantController::class, 'chercherParNom']);
 Route::get('/chercher-formation', [FormationController::class, 'chercherParTitre']);
 Route::get('/formations/{id}/apprenants', [FormationController::class, 'getApprenants']);
+
+

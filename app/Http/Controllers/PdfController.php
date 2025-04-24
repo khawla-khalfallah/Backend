@@ -45,16 +45,29 @@ class PdfController extends Controller {
     public function update(Request $request, $id)
     {
         $pdf = Pdf::findOrFail($id);
-
+    
         $validated = $request->validate([
             'titre' => 'sometimes|string|max:255',
-            'fichier' => 'nullable|string',
+            'fichier' => 'nullable|file|mimes:pdf|max:51200', // ✅ pas "string", mais bien fichier
             'formation_id' => 'sometimes|exists:formations,id',
         ]);
-
+    
+        // 📎 Si un nouveau fichier a été envoyé
+        if ($request->hasFile('fichier')) {
+            // Supprimer l'ancien fichier s'il existe (optionnel)
+            if ($pdf->fichier && Storage::disk('public')->exists($pdf->fichier)) {
+                Storage::disk('public')->delete($pdf->fichier);
+            }
+    
+            $file = $request->file('fichier');
+            $filePath = $file->storeAs('pdfs', $file->getClientOriginalName(), 'public');
+            $validated['fichier'] = $filePath;
+        }
+    
         $pdf->update($validated);
         return response()->json($pdf);
     }
+    
 
     public function destroy($id)
     {
