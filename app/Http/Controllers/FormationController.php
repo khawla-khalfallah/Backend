@@ -29,7 +29,7 @@ class FormationController extends Controller
 
     public function show($id)
     {
-        $formation = Formation::with(['formateur', 'apprenants', 'examens', 'seances', 'videos', 'pdfs'])->findOrFail($id);
+        $formation = Formation::with(['formateur.user', 'apprenants', 'examens', 'seances', 'videos', 'pdfs'])->findOrFail($id);
         return response()->json($formation);
     }
 
