@@ -44,7 +44,11 @@ class ExamenController extends Controller
         $examen->update($validated);
         return response()->json($examen);
     }
-
+    public function passer($id)
+    {
+        $examen = Examen::with('formation', 'questions')->findOrFail($id);
+        return response()->json($examen);
+    }
     public function destroy($id)
     {
         $examen = Examen::findOrFail($id);
