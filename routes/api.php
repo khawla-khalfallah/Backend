@@ -58,9 +58,10 @@ Route::prefix('recruteurs')->middleware('auth:sanctum')->group(function () {
     
 });
 
+Route::get('/formations', [FormationController::class, 'index']);
 
 Route::prefix('formations')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [FormationController::class, 'index']);           // GET /api/formations
+    // Route::get('/', [FormationController::class, 'index']);           // GET /api/formations
     Route::post('/', [FormationController::class, 'store']);          // POST /api/formations
     Route::get('/{id}', [FormationController::class, 'show']);        // GET /api/formations/{id}
     Route::put('/{id}', [FormationController::class, 'update']);      // PUT /api/formations/{id}

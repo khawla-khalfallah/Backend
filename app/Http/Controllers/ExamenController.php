@@ -80,8 +80,11 @@ class ExamenController extends Controller
     
         // TODO : mise à jours la note dans une table `examens`, par exemple
     
-        return response()->json(['note' => $noteFinale]);
-    }
+    // enregistrement de la note dans la base
+            $examen->note = $noteFinale;
+            $examen->save();
+                return response()->json(['note' => $noteFinale]);
+            }
     
 
 
