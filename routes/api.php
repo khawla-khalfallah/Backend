@@ -15,6 +15,8 @@ use App\Http\Controllers\SeanceController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\InscritController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\QuestionController;
+
 
 
 use App\Http\Controllers\TestController;
@@ -77,6 +79,8 @@ Route::prefix('inscrits')->middleware('auth:sanctum')->group(function () {
 
 Route::apiResource('certificats', CertificatController::class);
 Route::apiResource('examens', ExamenController::class);
+Route::post('/examens/{id}/soumettre', [ExamenController::class, 'soumettre']);
+
 Route::apiResource('pdfs', PdfController::class);
 Route::apiResource('seances', SeanceController::class);
 Route::apiResource('videos', VideoController::class);

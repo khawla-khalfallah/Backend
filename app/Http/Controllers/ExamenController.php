@@ -28,7 +28,10 @@ class ExamenController extends Controller
 
     public function show($id)
     {
-        return Examen::with(['formation', 'apprenant.user'])->findOrFail($id);
+        
+        $examen = Examen::with(['formation', 'apprenant.user','questions'])->findOrFail($id);
+        return response()->json($examen);
+
     }
 
     public function update(Request $request, $id)
@@ -55,6 +58,31 @@ class ExamenController extends Controller
     }
 
 
+
+
+    public function soumettre(Request $request, $id)
+    {
+        $examen = Examen::with('questions')->findOrFail($id);
+        $reponsesUtilisateur = $request->input('reponses');
+        $note = 0;
+        $total = count($examen->questions);
+    
+        foreach ($examen->questions as $question) {
+            if (
+                isset($reponsesUtilisateur[$question->id]) &&
+                $reponsesUtilisateur[$question->id] === $question->reponse_correcte
+            ) {
+                $note++;
+            }
+        }
+    
+        $noteFinale = round(($note / $total) * 20, 2); // sur 20
+    
+        // TODO : mise à jours la note dans une table `examens`, par exemple
+    
+        return response()->json(['note' => $noteFinale]);
+    }
+    
 
 
     public function destroy($id)
