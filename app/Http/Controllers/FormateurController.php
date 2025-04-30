@@ -60,11 +60,24 @@ class FormateurController extends Controller
 
   
       // Afficher un formateur spécifique
+            // public function show($id)
+            // {
+            //     $formateur = Formateur::with(['user', 'formations'])->findOrFail($id);
+            //     return response()->json($formateur);
+            // }
+
+
             public function show($id)
             {
-                $formateur = Formateur::with(['user', 'formations'])->findOrFail($id);
+                $formateur = Formateur::with(['formations.examens.apprenant.user'])->find($id);
+            
+                if (!$formateur) {
+                    return response()->json(['message' => 'Formateur non trouvé'], 404);
+                }
+            
                 return response()->json($formateur);
             }
+
   
       // Mettre à jour un formateur
     //   public function update(Request $request, $id)
