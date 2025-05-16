@@ -87,6 +87,7 @@ Route::apiResource('seances', SeanceController::class);
 Route::apiResource('videos', VideoController::class);
 Route::apiResource('administrateurs', AdministrateurController::class);
 Route::apiResource('questions', QuestionController::class);
+Route::post('/avis', [AvisController::class, 'store']);
 
 
 
