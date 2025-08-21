@@ -42,5 +42,16 @@ class Formation extends Model
     {
         return $this->hasMany(Pdf::class, 'formation_id');
     }
+    
 
+    public function evaluations()
+    {
+        return $this->hasMany(Evaluation::class);
+    }
+
+    public function getMoyenneAttribute()
+    {
+        return round($this->evaluations()->avg('note') ?? 0, 1);
+    }
+    
 }

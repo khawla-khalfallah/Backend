@@ -1,17 +1,33 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Formation;
+use App\Models\Evaluation;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class FormationController extends Controller
 {
-    public function index()
+    // Constante par défaut pour le seuil de confiance
+    const DEFAULT_M = 10;
+
+    public function index(Request $request)
     {
-        return Formation::with(['formateur', 'apprenants', 'examens', 'seances', 'videos', 'pdfs','formateur.user'])->get();
+        $m = $request->input('m', self::DEFAULT_M);
+        $C = $request->input('C', Evaluation::globalAverage());
+        
+        $formations = Formation::with(['formateur.user', 'evaluations'])
+            ->withCount('evaluations')
+            ->withAvg('evaluations', 'note')
+            ->get()
+            ->map(function ($formation) use ($m, $C) {
+                return $this->calculateBayesianStats($formation, $m, $C);
+            });
+
+        return response()->json($formations);
     }
-    
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -29,7 +45,20 @@ class FormationController extends Controller
 
     public function show($id)
     {
-        $formation = Formation::with(['formateur.user', 'apprenants', 'examens', 'seances', 'videos', 'pdfs'])->findOrFail($id);
+        $formation = Formation::with([
+            'formateur.user', 
+            'apprenants.user', 
+            'examens', 
+            'seances', 
+            'videos', 
+            'pdfs',
+            'evaluations.apprenant.user'
+        ])->findOrFail($id);
+        
+        // Ajout des statistiques
+        $formation->moyenne = $formation->evaluations->avg('note') ?? 0;
+        $formation->evaluations_count = $formation->evaluations->count();
+        
         return response()->json($formation);
     }
 
@@ -53,35 +82,92 @@ class FormationController extends Controller
     {
         Formation::destroy($id);
         return response()->json(['message' => 'Formation supprimée avec succès.']);
-    }    
-    
+    }
 
-
-
-
-    
-
-    // Renvoie les apprenants inscrits à une formation donnée
     public function getApprenants($id)
     {
-        $formation = Formation::with('apprenants.user')->find($id);
-
-        if (!$formation) {
-            return response()->json(['message' => 'Formation non trouvée'], 404);
-        }
-
+        $formation = Formation::with('apprenants.user')->findOrFail($id);
         return response()->json($formation->apprenants);
     }
+
     public function chercherParTitre(Request $request)
     {
-        $titre = $request->query('titre');
+        $request->validate(['titre' => 'required|string']);
+        
+        $formations = Formation::where('titre', 'LIKE', "%{$request->titre}%")
+            ->with(['formateur.user', 'evaluations'])
+            ->get()
+            ->map(function ($formation) {
+                return $this->calculateBayesianStats($formation);
+            });
 
-        $formation = Formation::where('titre', 'LIKE', "%$titre%")->first();
+        return response()->json($formations);
+    }
 
-        if ($formation) {
-            return response()->json($formation);
-        } else {
-            return response()->json(['message' => 'Formation non trouvée'], 404);
-        }
+    /**
+     * Endpoint spécifique pour le dashboard bayésien
+     */
+    
+    public function getBayesianRanking(Request $request)
+{
+    $m = $request->input('m', 10);
+    $C = $request->input('C', Evaluation::avg('note') ?? 3);
+
+    $formations = Formation::with(['formateur.user', 'evaluations'])
+        ->withCount('evaluations')
+        ->get()
+        ->map(function ($formation) use ($m, $C) {
+            $v = $formation->evaluations_count;
+            $R = $formation->evaluations->avg('note') ?? 0;
+            
+            return [
+                'id' => $formation->id,
+                'titre' => $formation->titre,
+                'description' => $formation->description,
+                'formateur' => $formation->formateur,
+                'evaluations_count' => $v,
+                'average_rating' => $R,
+                'bayesian_score' => $v > 0 
+                    ? ($v / ($v + $m)) * $R + ($m / ($v + $m)) * $C
+                    : $C
+            ];
+        })
+        ->sortByDesc('bayesian_score')
+        ->values();
+
+    return response()->json([
+        'formations' => $formations,
+        'meta' => [
+            'm' => $m,
+            'C' => $C,
+            'global_avg' => Evaluation::avg('note') ?? 3
+        ]
+    ]);
+}
+    /**
+     * Calcule les statistiques bayésiennes pour une formation
+     */
+    private function calculateBayesianStats($formation, $m = self::DEFAULT_M, $C = null)
+    {
+        $C = $C ?? Evaluation::globalAverage();
+        $v = $formation->evaluations_count ?? $formation->evaluations->count();
+        $R = $formation->evaluations_avg_note ?? $formation->evaluations->avg('note') ?? 0;
+
+        $formation->bayesian_score = $this->calculateBayesianScore($v, $R, $m, $C);
+        $formation->bayesian_calculation = "($v/($v+$m))×$R + ($m/($v+$m))×$C";
+        
+        return $formation;
+    }
+    public static function globalAverage()
+    {
+        return (float) Evaluation::avg('note') ?? 3.0;
+    }
+    /**
+     * Formule bayésienne de base
+     */
+    private function calculateBayesianScore($v, $R, $m, $C)
+    {
+        if ($v == 0) return $C;
+        return ($v / ($v + $m)) * $R + ($m / ($v + $m)) * $C;
     }
 }

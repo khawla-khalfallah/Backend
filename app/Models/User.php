@@ -15,9 +15,8 @@ class User extends Model
 
     public function apprenant()
     {
-        return $this->hasOne(Apprenant::class);
+        return $this->hasOne(Apprenant::class, 'user_id');
     }
-
     public function formateur()
     {
         return $this->hasOne(Formateur::class);

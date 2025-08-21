@@ -1,32 +1,18 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Apprenant;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use App\Models\User;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ApprenantController extends Controller
 {
-    // Tous les apprenants
     public function index()
     {
         return response()->json(Apprenant::with('user')->get());
     }
 
-    // Créer un apprenant
-    // public function store(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'user_id' => 'required|exists:users,id|unique:apprenants,user_id',
-    //         'niveau_etude' => 'nullable|string|max:50',
-    //     ]);
-
-    //     $apprenant = Apprenant::create($validated);
-    //     return response()->json($apprenant, 201);
-    // }
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -36,137 +22,106 @@ class ApprenantController extends Controller
             'password' => 'required|string|min:6',
             'niveau_etude' => 'required|string',
         ]);
-    
-        $user = User::create([
-            'nom' => $validated['nom'],
-            'prenom' => $validated['prenom'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'role' => 'apprenant'
-        ]);
-    
-        $apprenant = Apprenant::create([
-            'user_id' => $user->id,
-            'niveau_etude' => $validated['niveau_etude']
-        ]);
-    
-        return response()->json(['message' => 'Apprenant créé', 'apprenant' => $apprenant], 201);
-    }
-    // Voir un apprenant
-    public function show($id)
-    {
-        $apprenant = Apprenant::with(['user', 'formations', 'examens', 'certificats'])->findOrFail($id);
-        return response()->json($apprenant);
-    }
 
-    // Modifier un apprenant
-    // public function update(Request $request, $id)
-    // {
-    //     $apprenant = Apprenant::findOrFail($id);
-
-    //     $validated = $request->validate([
-    //         'niveau_etude' => 'nullable|string|max:50',
-    //     ]);
-
-    //     $apprenant->update($validated);
-    //     return response()->json($apprenant);
-    // }
-    public function update(Request $request, $id)
-    {
-        $apprenant = Apprenant::with('user')->findOrFail($id);
-    
-        $validated = $request->validate([
-            'nom' => 'nullable|string|max:255',
-            'prenom' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $apprenant->user->id,
-            'password' => 'nullable|string|min:6',
-            'niveau_etude' => 'nullable|string|max:50',
-        ]);
-    
-        // Mise à jour des données de l'utilisateur
-        $user = $apprenant->user;
-    
-        if (isset($validated['nom'])) $user->nom = $validated['nom'];
-        if (isset($validated['prenom'])) $user->prenom = $validated['prenom'];
-        if (isset($validated['email'])) $user->email = $validated['email'];
-        if (isset($validated['password'])) $user->password = bcrypt($validated['password']);
-        $user->save();
-    
-        // Mise à jour de l'apprenant
-        if (isset($validated['niveau_etude'])) {
-            $apprenant->niveau_etude = $validated['niveau_etude'];
-            $apprenant->save();
-        }
-    
-        return response()->json([
-            'message' => 'Profil mis à jour avec succès.',
-            'user' => $user,
-            'apprenant' => $apprenant
-        ]);
-    }
-    
-    // Supprimer un apprenant
-    // public function destroy($id)
-    // {
-    //     Apprenant::destroy($id);
-    //     return response()->json(['message' => 'Apprenant supprimé avec succès']);
-    // }
-    public function destroy($id)
-    {
+        DB::beginTransaction();
         try {
-            $apprenant = Apprenant::with('user')->findOrFail($id);
-    
-            // Supprimer l'utilisateur associé
-            if ($apprenant->user) {
-                $apprenant->user->delete();
-            }
-    
-            // Supprimer l'apprenant
-            $apprenant->delete();
-    
-            return response()->json(['message' => 'Apprenant supprimé avec succès']);
-        } catch (\Exception $e) {
+            $user = User::create([
+                'nom' => $validated['nom'],
+                'prenom' => $validated['prenom'],
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']),
+                'role' => 'apprenant'
+            ]);
+
+            $apprenant = Apprenant::create([
+                'user_id' => $user->id, // Correspondance garantie
+                'niveau_etude' => $validated['niveau_etude']
+            ]);
+
+            DB::commit();
             return response()->json([
-                'message' => 'Erreur lors de la suppression',
-                'error' => $e->getMessage(),
+                'message' => 'Apprenant créé',
+                'data' => $apprenant->load('user')
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erreur lors de la création',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
-    
-    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public function chercherParNom(Request $request)
+    public function show($id)
     {
-        $nom = $request->query('nom');
-    
-        $apprenant = Apprenant::with('user')
-            ->whereHas('user', function ($query) use ($nom) {
-                $query->where('nom', 'like', "%$nom%")
-                      ->orWhere('prenom', 'like', "%$nom%");
-            })
-            ->first();
-    
-        if (!$apprenant) {
-            return response()->json(['message' => 'Aucun apprenant trouvé'], 404);
-        }
-    
+        $apprenant = Apprenant::with(['user', 'formations', 'examens', 'certificats'])
+                        ->findOrFail($id);
         return response()->json($apprenant);
     }
-    
+
+    public function update(Request $request, $user_id) // Maintenant utilisant user_id
+    {
+        $validated = $request->validate([
+            'nom' => 'nullable|string|max:255',
+            'prenom' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,'.$user_id,
+            'password' => 'nullable|string|min:6',
+            'niveau_etude' => 'nullable|string|max:50',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $apprenant = Apprenant::findOrFail($user_id);
+            $user = $apprenant->user;
+
+            // Mise à jour user
+            if (isset($validated['nom'])) $user->nom = $validated['nom'];
+            if (isset($validated['prenom'])) $user->prenom = $validated['prenom'];
+            if (isset($validated['email'])) $user->email = $validated['email'];
+            if (isset($validated['password'])) $user->password = bcrypt($validated['password']);
+            $user->save();
+
+            // Mise à jour apprenant
+            if (isset($validated['niveau_etude'])) {
+                $apprenant->niveau_etude = $validated['niveau_etude'];
+                $apprenant->save();
+            }
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Profil mis à jour',
+                'data' => $apprenant->fresh('user')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erreur de mise à jour',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy($user_id)
+    {
+        DB::beginTransaction();
+        try {
+            $apprenant = Apprenant::findOrFail($user_id);
+            $user = $apprenant->user;
+
+            $apprenant->delete();
+            $user->delete();
+
+            DB::commit();
+            return response()->json(['message' => 'Suppression réussie']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erreur de suppression',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

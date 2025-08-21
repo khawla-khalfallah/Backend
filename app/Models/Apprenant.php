@@ -9,30 +9,24 @@ class Apprenant extends Model
 {
     use HasFactory;
 
-    // Définir la clé primaire à 'id' (par défaut)
-    protected $primaryKey = 'id'; // Utilise 'id' comme clé primaire
-    public $incrementing = true; // Indique que la clé primaire est auto-incrémentée
+      protected $primaryKey = 'user_id'; // Clé primaire = user_id
+    public $incrementing = false; // Désactive l'auto-incrément
 
-    protected $fillable = ['user_id', 'niveau_etude']; // Liste des attributs assignables
+    protected $fillable = ['user_id', 'niveau_etude'];
 
-    // Relation avec le modèle User (clé étrangère 'user_id')
-    
-    public function user()
-    {
-        return $this->belongsTo(User::class);
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');
     }
-    public function formations()
-    {
+   
+    public function formations() {
         return $this->belongsToMany(Formation::class, 'inscrits', 'apprenant_id', 'formation_id');
     }
 
-    public function examens()
-    {
-        return $this->hasMany(Examen::class, 'apprenant_id');
+    public function examens() {
+        return $this->hasMany(Examen::class, 'apprenant_id', 'user_id');
     }
 
-    public function certificats()
-    {
-        return $this->hasMany(Certificat::class, 'apprenant_id');
+    public function certificats() {
+        return $this->hasMany(Certificat::class, 'apprenant_id', 'user_id');
     }
 }
