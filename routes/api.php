@@ -109,6 +109,7 @@ Route::middleware(['auth:sanctum', 'log.requests'])->group(function () {
     Route::get('/tables', [TestController::class, 'listTables']);
     Route::get('/primary-keys', [TestController::class, 'listPrimaryKeys']);
 });
+
 Route::prefix('formations')->group(function () {
     // ... routes existantes ...
     Route::get('/ranking/bayesian', [FormationController::class, 'getBayesianRanking']);
@@ -117,3 +118,47 @@ Route::get('/formations/global-average', [FormationController::class, 'getGlobal
 Route::get('/formations/ranked', [FormationController::class, 'getRankedCourses']);
 // Ajoutez ces nouvelles routes
 Route::get('/formations/with-stats', [FormationController::class, 'getCoursesWithStats']);
+
+
+Route::apiResource('certificats', CertificatController::class);
+Route::apiResource('examens', ExamenController::class);
+Route::post('/examens/{id}/soumettre', [ExamenController::class, 'soumettre']);
+
+Route::apiResource('pdfs', PdfController::class);
+Route::apiResource('seances', SeanceController::class);
+Route::apiResource('videos', VideoController::class);
+Route::apiResource('administrateurs', AdministrateurController::class);
+Route::apiResource('questions', QuestionController::class);
+Route::post('/avis', [AvisController::class, 'store']);
+
+
+
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->get('/profile', [UserController::class, 'me']);
+Route::get('/apprenants/{id}/formations', [InscritController::class, 'getFormationsByApprenant']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Route::get('/tables', [TestController::class, 'listTables']);
+Route::get('/primary-keys', [TestController::class, 'listPrimaryKeys']);
+Route::get('/chercher-apprenant', [ApprenantController::class, 'chercherParNom']);
+Route::get('/chercher-formation', [FormationController::class, 'chercherParTitre']);
+Route::get('/formations/{id}/apprenants', [FormationController::class, 'getApprenants']);
+
+
+>>>>>>> 39b49da65536611b09f1ceb983e150cf78055778
