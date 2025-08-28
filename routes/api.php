@@ -19,10 +19,19 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\DailyController;
+use App\Http\Controllers\EmailController;
+
 
 // Routes publiques
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/formations', [FormationController::class, 'index']);
+
+
+// Route publique pour rechercher un apprenant (pas besoin d’être authentifié)
+Route::get('/apprenants/search', [ApprenantController::class, 'search']);
+// Route publique pour envoyer un email
+Route::post('/send-email', [EmailController::class, 'send']);
+
 
 // Routes protégées par Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -89,7 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [InscritController::class, 'show']);
         Route::put('/{id}', [InscritController::class, 'update']);
         Route::delete('/{id}', [InscritController::class, 'destroy']);
+        Route::get('/apprenant/{id}', [InscritController::class, 'getByApprenant']);
     });
+
 
     // Ressources API
     Route::apiResource('certificats', CertificatController::class);
@@ -159,6 +170,3 @@ Route::get('/primary-keys', [TestController::class, 'listPrimaryKeys']);
 Route::get('/chercher-apprenant', [ApprenantController::class, 'chercherParNom']);
 Route::get('/chercher-formation', [FormationController::class, 'chercherParTitre']);
 Route::get('/formations/{id}/apprenants', [FormationController::class, 'getApprenants']);
-
-
->>>>>>> 39b49da65536611b09f1ceb983e150cf78055778

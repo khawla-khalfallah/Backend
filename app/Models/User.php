@@ -30,5 +30,18 @@ class User extends Model
     {
         return $this->hasOne(Administrateur::class);
     }
+    public function formations()
+    {
+        return $this->hasManyThrough(
+            Formation::class,       // le modèle cible
+            Apprenant::class,       // le modèle intermédiaire
+            'user_id',              // clé étrangère sur apprenants
+            'id',                   // clé sur formations (ou adapte selon ta table pivot)
+            'id',                   // clé locale sur users
+            'formation_id'          // clé étrangère sur apprenants (ou table pivot)
+        );
+    }
+
+
 }
 

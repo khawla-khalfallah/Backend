@@ -29,4 +29,9 @@ class Apprenant extends Model
     public function certificats() {
         return $this->hasMany(Certificat::class, 'apprenant_id', 'user_id');
     }
+    public function inscrits()
+    {
+        return $this->hasMany(Inscrit::class, 'apprenant_id');
+    }
+
 }

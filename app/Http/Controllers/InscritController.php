@@ -103,5 +103,14 @@ class InscritController extends Controller
 
         return response()->json(['message' => 'Inscription supprimée.']);
     }
+      // Retourner toutes les formations d'un apprenant donné
+    public function getByApprenant($id)
+    {
+        $inscriptions = Inscrit::with(['formation', 'apprenant.user'])
+            ->where('apprenant_id', $id)
+            ->get();
+
+        return response()->json($inscriptions);
+    }
     
 }

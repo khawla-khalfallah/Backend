@@ -72,16 +72,14 @@ class ApprenantController extends Controller
 
         DB::beginTransaction();
         try {
-            $apprenant = Apprenant::findOrFail($user_id);
+            $apprenant = Apprenant::where('user_id', $user_id)->firstOrFail();
             $user = $apprenant->user;
-
             // Mise à jour user
             if (isset($validated['nom'])) $user->nom = $validated['nom'];
             if (isset($validated['prenom'])) $user->prenom = $validated['prenom'];
             if (isset($validated['email'])) $user->email = $validated['email'];
             if (isset($validated['password'])) $user->password = bcrypt($validated['password']);
             $user->save();
-
             // Mise à jour apprenant
             if (isset($validated['niveau_etude'])) {
                 $apprenant->niveau_etude = $validated['niveau_etude'];
@@ -107,7 +105,7 @@ class ApprenantController extends Controller
     {
         DB::beginTransaction();
         try {
-            $apprenant = Apprenant::findOrFail($user_id);
+            $apprenant = Apprenant::where('user_id', $user_id)->firstOrFail();
             $user = $apprenant->user;
 
             $apprenant->delete();
@@ -115,7 +113,6 @@ class ApprenantController extends Controller
 
             DB::commit();
             return response()->json(['message' => 'Suppression réussie']);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -124,4 +121,28 @@ class ApprenantController extends Controller
             ], 500);
         }
     }
+
+    public function search(Request $request)
+    {
+        $q = $request->query('q');
+        $querySearch = array_map('trim', explode(',', $q)); // ['angular', 'react']
+
+        $apprenants = Apprenant::query();
+
+        // On ajoute un whereHas pour chaque mot-clé
+        foreach ($querySearch as $term) {
+            $apprenants->whereHas('inscrits.formation', function ($query) use ($term) {
+                $query->where('titre', 'like', '%' . $term . '%');
+            });
+        }
+
+        // On charge les relations
+        $apprenants = $apprenants->with([
+            'user',
+            'inscrits.formation'
+        ])->get();
+
+        return response()->json($apprenants);
+    }
+
 }

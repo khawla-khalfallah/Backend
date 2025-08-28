@@ -11,7 +11,7 @@ class Inscrit extends Model
 
     protected $table = 'inscrits';
     protected $primaryKey = 'id_inscrit';
-    protected $fillable = ['apprenant_id', 'formation_id'];
+    protected $fillable = ['apprenant_id', 'formation_id','date_inscription'];
 
     // Relations
     public function apprenant()
