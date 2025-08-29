@@ -31,6 +31,8 @@ Route::get('/formations', [FormationController::class, 'index']);
 Route::get('/apprenants/search', [ApprenantController::class, 'search']);
 // Route publique pour envoyer un email
 Route::post('/send-email', [EmailController::class, 'send']);
+// Route publique pour inscription
+Route::post('/users', [UserController::class, 'store']);
 
 
 // Routes protégées par Sanctum
@@ -42,7 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Users
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
-        Route::post('/', [UserController::class, 'store']);
         Route::get('/{id}', [UserController::class, 'show']);
         Route::put('/{id}', [UserController::class, 'update']);
         Route::delete('/{id}', [UserController::class, 'destroy']);

@@ -39,6 +39,8 @@ class UserController extends Controller
         'specialite' => 'nullable|required_if:role,formateur|string|max:100',
         'bio' => 'nullable|required_if:role,formateur|string|max:500',
         'entreprise' => 'nullable|required_if:role,recruteur|string|max:100',
+        'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+
     ]);
 
     DB::beginTransaction();
@@ -62,12 +64,19 @@ class UserController extends Controller
                 break;
 
             case 'formateur':
-                $user->formateur()->create([
-                    'user_id' => $user->id, // Explicitement défini
-                    'specialite' => $validated['specialite'],
-                    'bio' => $validated['bio']
-                ]);
-                break;
+                    $formateurData = [
+                        'user_id' => $user->id,
+                        'specialite' => $validated['specialite'],
+                        'bio' => $validated['bio']
+                    ];
+
+                    if ($request->hasFile('cv')) {
+                        $cvPath = $request->file('cv')->store('cvs', 'public');
+                        $formateurData['cv'] = $cvPath;
+                    }
+
+                    $user->formateur()->create($formateurData);
+                    break;
 
             case 'recruteur':
                 $user->recruteur()->create([
@@ -120,6 +129,8 @@ class UserController extends Controller
                 'prenom' => 'sometimes|string|max:50',
                 'email' => 'sometimes|email|unique:users,email,' . $id,
                 'password' => 'nullable|min:6|confirmed',
+                'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+
             ]);
 
             // Hachage du mot de passe si fourni
@@ -210,13 +221,19 @@ class UserController extends Controller
             case 'formateur':
                 $request->validate([
                     'specialite' => 'nullable|string|max:100',
-                    'bio' => 'nullable|string|max:500'
+                    'bio' => 'nullable|string|max:500',
+                    'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
                 ]);
                 if ($user->formateur) {
-                    $user->formateur->update([
+                    $updateData = [
                         'specialite' => $request->specialite,
                         'bio' => $request->bio
-                    ]);
+                    ];
+                    if ($request->hasFile('cv')) {
+                        $cvPath = $request->file('cv')->store('cvs', 'public');
+                        $updateData['cv'] = $cvPath;
+                    }
+                    $user->formateur->update($updateData);
                 }
                 break;
 

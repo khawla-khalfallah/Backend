@@ -29,34 +29,43 @@ class FormateurController extends Controller
     //   }
             // Créer un formateur (avec création de user)
             public function store(Request $request)
-            {
-                $validated = $request->validate([
-                    'nom' => 'required|string|max:50',
-                    'prenom' => 'required|string|max:50',
-                    'email' => 'required|email|unique:users,email',
-                    'password' => 'required|string|min:6',
-                    'specialite' => 'nullable|string|max:100',
-                    'bio' => 'nullable|string',
-                ]);
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:50',
+            'prenom' => 'required|string|max:50',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'specialite' => 'nullable|string|max:100',
+            'bio' => 'nullable|string',
+            'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+        ]);
 
-                // Création du user
-                $user = User::create([
-                    'nom' => $validated['nom'],
-                    'prenom' => $validated['prenom'],
-                    'email' => $validated['email'],
-                    'password' => bcrypt($validated['password']),
-                    'role' => 'formateur',
-                ]);
+        // Création du user
+        $user = User::create([
+            'nom' => $validated['nom'],
+            'prenom' => $validated['prenom'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => 'formateur',
+        ]);
 
-                // Création du formateur lié à ce user
-                $formateur = Formateur::create([
-                    'user_id' => $user->id,
-                    'specialite' => $validated['specialite'] ?? null,
-                    'bio' => $validated['bio'] ?? null,
-                ]);
+        // Upload du fichier CV
+        $cvPath = null;
+        if ($request->hasFile('cv')) {
+            $cvPath = $request->file('cv')->store('cvs', 'public'); 
+        }
 
-                return response()->json($formateur->load('user'), 201);
-            }
+        // Création du formateur
+        $formateur = Formateur::create([
+            'user_id' => $user->id,
+            'specialite' => $validated['specialite'] ?? null,
+            'bio' => $validated['bio'] ?? null,
+            'cv' => $cvPath,
+        ]);
+
+        return response()->json($formateur->load('user'), 201);
+    }
+
 
   
       // Afficher un formateur spécifique
@@ -66,7 +75,7 @@ class FormateurController extends Controller
             //     return response()->json($formateur);
             // }
 
-
+         // Afficher un formateur spécifique
             public function show($id)
             {
                 $formateur = Formateur::with(['formations.examens.apprenant.user'])->find($id);
@@ -103,6 +112,8 @@ class FormateurController extends Controller
                     'password' => 'nullable|string|min:6',
                     'specialite' => 'nullable|string|max:100',
                     'bio' => 'nullable|string',
+                    'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+
                 ]);
             
                 // Mettre à jour User
@@ -112,6 +123,11 @@ class FormateurController extends Controller
                 if (isset($validated['email'])) $user->email = $validated['email'];
                 if (isset($validated['password'])) $user->password = bcrypt($validated['password']);
                 $user->save();
+                 // Upload nouveau CV si fourni
+                if ($request->hasFile('cv')) {
+                    $cvPath = $request->file('cv')->store('cvs', 'public');
+                    $formateur->cv = $cvPath;
+                }
             
                 // Mettre à jour Formateur
                 if (isset($validated['specialite'])) $formateur->specialite = $validated['specialite'];
