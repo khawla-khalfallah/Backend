@@ -6,15 +6,31 @@ use App\Models\Formateur;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
+
 
 class FormateurController extends Controller
 {
       // Afficher tous les formateurs
       public function index()
-      {
-          return response()->json(Formateur::with('user')->get());
-      }
-  
+    //   {
+    //       return response()->json(Formateur::with('user')->get());
+    //   }
+  {
+    $formateurs = Formateur::with('user')->get();
+
+    // 🔥 Ajouter cv_url automatiquement
+    $formateurs->map(function ($f) {
+        if ($f->cv) { $f->cv_url = Storage::url($f->cv); 
+            // ça va générer: /storage/cvs/xxxx.pdf
+        } else {
+            $f->cv_url = null;
+        }
+        return $f;
+    });
+
+    return response()->json($formateurs);
+}
       // Créer un formateur
     //   public function store(Request $request)
     //   {
@@ -37,7 +53,7 @@ class FormateurController extends Controller
             'password' => 'required|string|min:6',
             'specialite' => 'nullable|string|max:100',
             'bio' => 'nullable|string',
-            'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'cv' => 'nullable|file|mimes:pdf,doc,docx',
         ]);
 
         // Création du user
@@ -112,7 +128,7 @@ class FormateurController extends Controller
                     'password' => 'nullable|string|min:6',
                     'specialite' => 'nullable|string|max:100',
                     'bio' => 'nullable|string',
-                    'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+                    'cv' => 'nullable|file|mimes:pdf,doc,docx',
 
                 ]);
             
