@@ -19,7 +19,7 @@ class PdfController extends Controller {
          // Validation des champs
     $validated = $request->validate([
         'titre' => 'required|string|max:255',
-        'fichier' => 'required|file|mimes:pdf|max:51200', 
+        'fichier' => 'required|file|mimes:pdf|max:102400', 
         'formation_id' => 'required|exists:formations,id',
     ]);
 
@@ -48,7 +48,7 @@ class PdfController extends Controller {
     
         $validated = $request->validate([
             'titre' => 'sometimes|string|max:255',
-            'fichier' => 'nullable|file|mimes:pdf|max:51200', // ✅ pas "string", mais bien fichier
+            'fichier' => 'nullable|file|mimes:pdf|max:102400', // ✅ pas "string", mais bien fichier
             'formation_id' => 'sometimes|exists:formations,id',
         ]);
     

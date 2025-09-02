@@ -20,14 +20,6 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // if (!$user || !Hash::check($request->password, $user->password)) {
-        //     return response()->json(['message' => 'Identifiants invalides.'], 401);
-        // }
-
-        // return response()->json([
-        //     'token' => $user->createToken('login')->plainTextToken,
-        //     'user' => $user,
-        // ]);
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Identifiants invalides.',
@@ -35,6 +27,22 @@ class AuthController extends Controller
                     'email' => ['Les informations fournies sont incorrectes.']
                 ]
             ], 401);
+        }
+        
+        // 🔒 Vérifier si c’est un formateur en attente ou refusé
+        if ($user->role === 'formateur' && $user->formateur) {
+            if ($user->formateur->status === 'en_attente') {
+                return response()->json([
+                    'message' => '⏳ Votre compte est en cours de vérification par l’administrateur.'
+                ], 403);
+            }
+
+            if ($user->formateur->status === 'refuse') {
+                return response()->json([
+                    'message' => '❌ Votre inscription a été refusée.',
+                    'remarque' => $user->formateur->remarque // tu renvoies la raison
+                ], 403);
+            }
         }
         return response()->json([
             'token' => $user->createToken('login')->plainTextToken,
