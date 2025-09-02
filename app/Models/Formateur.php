@@ -13,7 +13,7 @@ class Formateur extends Model
     protected $primaryKey = 'user_id';
     public $incrementing = false;
 
-    protected $fillable = ['user_id', 'specialite', 'bio', 'cv'];
+    protected $fillable = ['user_id', 'specialite', 'bio', 'cv', 'status', 'remarque'];
     
     public function user()
     {

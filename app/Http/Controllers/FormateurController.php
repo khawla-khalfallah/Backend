@@ -77,6 +77,7 @@ class FormateurController extends Controller
             'specialite' => $validated['specialite'] ?? null,
             'bio' => $validated['bio'] ?? null,
             'cv' => $cvPath,
+            'status' => 'en_attente' 
         ]);
 
         return response()->json($formateur->load('user'), 201);
@@ -152,7 +153,33 @@ class FormateurController extends Controller
             
                 return response()->json(['message' => 'Profil formateur mis à jour avec succès']);
             }
-            
+            public function updateStatus(Request $request, $id)
+            {
+                $data = $request->validate([
+                    'status'   => 'required|in:en_attente,accepte,refuse',
+                    'remarque' => 'nullable|string|max:1000',
+                ]);
+
+                $formateur = Formateur::findOrFail($id);
+
+                // ✅ remarque obligatoire si refus
+                 if ($data['status'] === 'refuse' && empty($data['remarque'])) {
+                    return response()->json([
+                        'message' => 'Une remarque est obligatoire en cas de refus.',
+                        'errors'  => ['remarque' => ['Remarque obligatoire si refus']]
+                    ], 422);
+                }
+
+                $formateur->status   = $data['status'];
+                $formateur->remarque = $data['status'] === 'refuse' ? $data['remarque'] : null;
+                $formateur->save();
+
+                return response()->json([
+                    'message'   => 'Statut mis à jour avec succès.',
+                    'formateur' => $formateur->load('user')
+                ]);
+            }
+
                     
             
       // Supprimer un formateur

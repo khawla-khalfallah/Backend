@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [FormateurController::class, 'show']);
         Route::put('/{id}', [FormateurController::class, 'update']);
         Route::delete('/{id}', [FormateurController::class, 'destroy']);
+        Route::put('/{id}/status', [FormateurController::class, 'updateStatus']);
     });
 
     // Recruteurs

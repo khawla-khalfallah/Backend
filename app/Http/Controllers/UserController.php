@@ -67,7 +67,8 @@ class UserController extends Controller
                     $formateurData = [
                         'user_id' => $user->id,
                         'specialite' => $validated['specialite'],
-                        'bio' => $validated['bio']
+                        'bio' => $validated['bio'],
+                        'status'     => 'en_attente', 
                     ];
 
                     if ($request->hasFile('cv')) {
