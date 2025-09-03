@@ -8,20 +8,23 @@ class Examen extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['date_examen', 'note', 'formation_id', 'apprenant_id'];
+    protected $fillable = ['titre', 'description', 'formation_id'];
 
     public function formation()
     {
         return $this->belongsTo(Formation::class);
     }
 
-    public function apprenant()
-    {
-        return $this->belongsTo(Apprenant::class);
-    }
     public function questions()
     {
         return $this->hasMany(Question::class);
+    }
+
+    public function apprenants()
+    {
+        return $this->belongsToMany(Apprenant::class, 'examens_apprenants')
+                    ->withPivot('note', 'statut', 'date_passage')
+                    ->withTimestamps();
     }
     
 }

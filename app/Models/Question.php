@@ -9,14 +9,15 @@ class Question extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['question', 'options', 'reponse_correcte', 'examen_id'];
-
-    protected $casts = [
-        'options' => 'array', // Laravel sait que c'est un tableau
-    ];
+    protected $fillable = ['examen_id', 'enonce', 'type'];
 
     public function examen()
     {
         return $this->belongsTo(Examen::class);
+    }
+
+    public function reponses()
+    {
+        return $this->hasMany(Reponse::class);
     }
 }

@@ -22,9 +22,9 @@ class Apprenant extends Model
         return $this->belongsToMany(Formation::class, 'inscrits', 'apprenant_id', 'formation_id');
     }
 
-    public function examens() {
-        return $this->hasMany(Examen::class, 'apprenant_id', 'user_id');
-    }
+    // public function examens() {
+    //     return $this->hasMany(Examen::class, 'apprenant_id', 'user_id');
+    // }
 
     public function certificats() {
         return $this->hasMany(Certificat::class, 'apprenant_id', 'user_id');
@@ -33,5 +33,15 @@ class Apprenant extends Model
     {
         return $this->hasMany(Inscrit::class, 'apprenant_id');
     }
+    public function examens()
+    {
+        return $this->belongsToMany(Examen::class, 'examens_apprenants')
+                    ->withPivot('note', 'statut', 'date_passage')
+                    ->withTimestamps();
+    }
 
+    public function reponsesDonnees()
+    {
+        return $this->hasMany(ReponseApprenant::class);
+    }
 }
