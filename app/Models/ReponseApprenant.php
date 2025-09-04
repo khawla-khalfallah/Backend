@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReponseApprenant extends Model
 {
-    protected $fillable = ['apprenant_id', 'question_id', 'reponse_id', 'reponse_donnee', 'est_correct'];
+    protected $fillable = ['examen_apprenant_id', 'question_id', 'reponse_id', 'reponse_donnee', 'est_correct'];
 
     public function apprenant()
     {
@@ -21,5 +21,8 @@ class ReponseApprenant extends Model
     public function reponse()
     {
         return $this->belongsTo(Reponse::class);
+    }
+    public function examenApprenant() {
+        return $this->belongsTo(\App\Models\ExamenApprenant::class);
     }
 }
