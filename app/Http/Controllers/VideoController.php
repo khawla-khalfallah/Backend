@@ -45,6 +45,15 @@ class VideoController extends Controller
         $video->update($validated);
         return response()->json($video);
     }
+    public function getByFormateur($id)
+    {
+        return Video::whereHas('formation', function ($q) use ($id) {
+            $q->where('formateur_id', $id);
+        })
+        ->with('formation:id,titre,formateur_id') // on limite les colonnes utiles
+        ->get(['id', 'titre', 'url', 'description', 'formation_id']); // ✅ id inclus
+    }
+
 
     public function destroy($id)
     {

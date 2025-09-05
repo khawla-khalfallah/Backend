@@ -67,7 +67,17 @@ class PdfController extends Controller {
         $pdf->update($validated);
         return response()->json($pdf);
     }
-    
+    public function getByFormateur($id)
+    {
+        // Récupère uniquement les PDFs des formations créées par ce formateur
+        return Pdf::whereHas('formation', function ($q) use ($id) {
+            $q->where('formateur_id', $id);
+        })
+        ->with('formation:id,titre,formateur_id') // on limite les colonnes utiles
+        ->get(['id', 'titre', 'fichier', 'formation_id']); // ✅ on force le retour de l'id
+    }
+
+
 
     public function destroy($id)
     {

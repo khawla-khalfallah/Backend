@@ -68,6 +68,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [FormateurController::class, 'update']);
         Route::delete('/{id}', [FormateurController::class, 'destroy']);
         Route::put('/{id}/status', [FormateurController::class, 'updateStatus']);
+        // PDFs & Vidéos d’un formateur spécifique
+        Route::get('/{id}/pdfs', [PdfController::class, 'getByFormateur']);
+        Route::get('/{id}/videos', [VideoController::class, 'getByFormateur']);
+        Route::get('/{id}/formations', [FormationController::class, 'getByFormateur']);
+
     });
 
     // Recruteurs

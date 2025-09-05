@@ -170,4 +170,9 @@ class FormationController extends Controller
         if ($v == 0) return $C;
         return ($v / ($v + $m)) * $R + ($m / ($v + $m)) * $C;
     }
+    public function getByFormateur($id)
+    {
+        return Formation::where('formateur_id', $id)->get();
+    }
+
 }
