@@ -46,7 +46,7 @@ class AuthController extends Controller
         }
         return response()->json([
             'token' => $user->createToken('login')->plainTextToken,
-            'user' => $user,
+            'user' => $user->load(['apprenant', 'formateur', 'recruteur', 'administrateur']),
         ]);
         } 
         catch (\Exception $e) {

@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('examens', function (Blueprint $table) {
-            // 🔴 Supprimer les colonnes inutiles
+            // 🔴 Drop foreign key constraint first, then the column
+            $table->dropForeign(['apprenant_id']);
             $table->dropColumn('apprenant_id');
             $table->dropColumn('note');
 
@@ -32,6 +33,9 @@ return new class extends Migration
             $table->float('note')->nullable();
             $table->dropColumn('titre');
             $table->dropColumn('description');
+            
+            // Re-add the foreign key constraint
+            $table->foreign('apprenant_id')->references('user_id')->on('apprenants')->onDelete('cascade');
         });
     }
 };
