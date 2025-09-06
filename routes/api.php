@@ -115,6 +115,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('certificats', CertificatController::class);
     Route::apiResource('examens', ExamenController::class);
     Route::post('/examens/{id}/soumettre', [ExamenController::class, 'soumettre']);
+    Route::get('/examens/{id}/passer', [ExamenController::class, 'passer']);
+    Route::get('/examens/{id}/status', [ExamenController::class, 'hasUserTakenExam']);
     Route::apiResource('pdfs', PdfController::class);
     Route::apiResource('seances', SeanceController::class);
     Route::apiResource('videos', VideoController::class);
@@ -122,7 +124,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('questions', QuestionController::class);
 });
 Route::post('/create-room', [DailyController::class, 'createRoom']);
-Route::post('/create-room', [RoomController::class, 'createRoom']);
+// Route::post('/create-room', [RoomController::class, 'createRoom']); // Commented out - RoomController doesn't exist
 
 // Routes de test (peuvent être protégées ou non selon les besoins)
 Route::middleware(['auth:sanctum', 'log.requests'])->group(function () {
@@ -140,20 +142,14 @@ Route::get('/formations/ranked', [FormationController::class, 'getRankedCourses'
 Route::get('/formations/with-stats', [FormationController::class, 'getCoursesWithStats']);
 
 
-Route::apiResource('certificats', CertificatController::class);
-// Route::apiResource('examens', ExamenController::class);
-// Route::post('/examens/{id}/soumettre', [ExamenController::class, 'soumettre']);
-Route::apiResource('examens', ExamenController::class);
-Route::post('/examens/{id}/soumettre', [ExamenController::class, 'soumettre']); 
-Route::get('/examens/{id}/passer', [ExamenController::class, 'passer']);
-
-
-Route::apiResource('pdfs', PdfController::class);
-Route::apiResource('seances', SeanceController::class);
-Route::apiResource('videos', VideoController::class);
-Route::apiResource('administrateurs', AdministrateurController::class);
-Route::apiResource('questions', QuestionController::class);
-Route::post('/avis', [AvisController::class, 'store']);
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::apiResource('pdfs', PdfController::class);
+// });
+// Route::apiResource('seances', SeanceController::class);
+// Route::apiResource('videos', VideoController::class);
+// Route::apiResource('administrateurs', AdministrateurController::class);
+// Route::apiResource('questions', QuestionController::class);
+// Route::post('/avis', [AvisController::class, 'store']); // Commented out - AvisController doesn't exist
 
 
 

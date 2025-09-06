@@ -8,7 +8,16 @@ class Examen extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['titre', 'description', 'formation_id'];
+    protected $fillable = [
+        'titre', 
+        'title',
+        'description', 
+        'formation_id', 
+        'date_examen',
+        'formateur_id',
+        'duration',
+        'total_marks'
+    ];
 
     public function formation()
     {
