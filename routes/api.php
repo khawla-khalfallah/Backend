@@ -20,6 +20,8 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\DailyController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\ContactController;
+
 
 
 // Routes publiques
@@ -33,6 +35,9 @@ Route::get('/apprenants/search', [ApprenantController::class, 'search']);
 Route::post('/send-email', [EmailController::class, 'send']);
 // Route publique pour inscription
 Route::post('/users', [UserController::class, 'store']);
+// Route publique pour apropos.js
+Route::post('/contact', [ContactController::class, 'store']);
+
 
 
 // Routes protégées par Sanctum
@@ -122,6 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('videos', VideoController::class);
     Route::apiResource('administrateurs', AdministrateurController::class);
     Route::apiResource('questions', QuestionController::class);
+
 });
 Route::post('/create-room', [DailyController::class, 'createRoom']);
 // Route::post('/create-room', [RoomController::class, 'createRoom']); // Commented out - RoomController doesn't exist
