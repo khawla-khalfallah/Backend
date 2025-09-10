@@ -14,6 +14,7 @@ Thanks,<br>
 # Nouveau message de contact
 
 - **Nom :** {{ $contact->name }}
+- **Prénom :** {{ $contact->prenom }}
 - **Email :** {{ $contact->email }}
 
 **Message :**

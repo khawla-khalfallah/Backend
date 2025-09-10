@@ -21,6 +21,8 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\DailyController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PasswordResetController;
+
 
 
 
@@ -37,6 +39,13 @@ Route::post('/send-email', [EmailController::class, 'send']);
 Route::post('/users', [UserController::class, 'store']);
 // Route publique pour apropos.js
 Route::post('/contact', [ContactController::class, 'store']);
+// Liste des contacts (admin)
+Route::get('/contact', [ContactController::class, 'index']);
+// Route publique pour répondre l'admin a les personnes
+Route::post('/contact/{id}/reply', [ContactController::class, 'reply']);
+//Route publique pour mot passe oubliée
+Route::post('/forgot-password', [PasswordResetController::class, 'forgot']);
+Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 
 
 
