@@ -78,9 +78,20 @@ class FormationController extends Controller
         return response()->json($formation);
     }
 
+    // public function destroy($id)
+    // {
+    //     Formation::destroy($id);
+    //     return response()->json(['message' => 'Formation supprimée avec succès.']);
+    // }
     public function destroy($id)
     {
-        Formation::destroy($id);
+        $formation = Formation::findOrFail($id);
+
+        // Supprimer aussi les inscrits liés (au cas où cascade DB ne marche pas)
+        $formation->inscrits()->delete();
+
+        $formation->delete();
+
         return response()->json(['message' => 'Formation supprimée avec succès.']);
     }
 

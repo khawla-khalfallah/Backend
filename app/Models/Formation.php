@@ -23,6 +23,11 @@ class Formation extends Model
     {
         return $this->belongsToMany(Apprenant::class, 'inscrits', 'formation_id', 'apprenant_id', 'id', 'user_id');
     }
+    public function inscrits()
+    {
+        return $this->hasMany(Inscrit::class, 'formation_id');
+    }
+
     public function examens()
     {
         return $this->hasMany(Examen::class, 'formation_id');
