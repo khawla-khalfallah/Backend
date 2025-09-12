@@ -30,16 +30,16 @@ class UserController extends Controller
    public function store(Request $request)
 {
     $validated = $request->validate([
-        'nom' => 'required|string|max:50',
-        'prenom' => 'required|string|max:50',
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:6|confirmed',
+        'nom' => 'required|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+        'prenom' => 'required|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+        'email' => 'required|email|unique:users|regex:/^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$/',
+        'password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
         'role' => 'required|in:apprenant,formateur,recruteur',
         'niveau_etude' => 'nullable|required_if:role,apprenant|string|max:100',
         'specialite' => 'nullable|required_if:role,formateur|string|max:100',
         'bio' => 'nullable|required_if:role,formateur|string|max:500',
         'entreprise' => 'nullable|required_if:role,recruteur|string|max:100',
-        'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+        'cv' => 'nullable|file|mimes:pdf,doc,docx|max:102400'
 
     ]);
 
@@ -126,11 +126,11 @@ class UserController extends Controller
             
             // Validation des champs de base
             $validated = $request->validate([
-                'nom' => 'sometimes|string|max:50',
-                'prenom' => 'sometimes|string|max:50',
-                'email' => 'sometimes|email|unique:users,email,' . $id,
-                'password' => 'nullable|min:6|confirmed',
-                'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+                'nom' => 'nullable|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+                'prenom' => 'nullable|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+                'email' => 'nullable|email|unique:users,email,' . $id . '|regex:/^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$/',
+                'password' => 'nullable|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+                'cv' => 'nullable|file|mimes:pdf,doc,docx|max:102400',
 
             ]);
 

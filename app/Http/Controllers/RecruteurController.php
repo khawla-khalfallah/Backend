@@ -20,10 +20,10 @@ class RecruteurController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|max:50',
-            'prenom' => 'required|string|max:50',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
+            'nom' => 'required|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+            'prenom' => 'required|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+            'email' => 'required|email|unique:users,email|regex:/^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$/',
+            'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
             'entreprise' => 'nullable|string|max:100',
         ]);
 
@@ -69,10 +69,10 @@ class RecruteurController extends Controller
     public function update(Request $request, $user_id)
     {
         $validated = $request->validate([
-            'nom' => 'nullable|string|max:255',
-            'prenom' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user_id,
-            'password' => 'nullable|string|min:6',
+            'nom' => 'nullable|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+            'prenom' => 'nullable|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+            'email' => 'nullable|email|unique:users,email,' . $user_id . '|regex:/^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$/',
+            'password' => 'nullable|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
             'entreprise' => 'nullable|string|max:100',
         ]);
 

@@ -16,11 +16,11 @@ class ApprenantController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|string',
-            'prenom' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6',
-            'niveau_etude' => 'required|string',
+            'nom' => 'required|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+            'prenom' => 'required|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+            'email' => 'required|email|unique:users|regex:/^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$/',
+            'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+            'niveau_etude' => 'required|string|max:100',
         ]);
 
         DB::beginTransaction();
@@ -63,11 +63,11 @@ class ApprenantController extends Controller
     public function update(Request $request, $user_id) // Maintenant utilisant user_id
     {
         $validated = $request->validate([
-            'nom' => 'nullable|string|max:255',
-            'prenom' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email,'.$user_id,
-            'password' => 'nullable|string|min:6',
-            'niveau_etude' => 'nullable|string|max:50',
+                'nom' => 'nullable|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+                'prenom' => 'nullable|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
+                'email' => 'nullable|email|unique:users,email,'.$user_id . '|regex:/^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$/',
+                'password' => 'nullable|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+                'niveau_etude' => 'nullable|string|max:100',
         ]);
 
         DB::beginTransaction();
