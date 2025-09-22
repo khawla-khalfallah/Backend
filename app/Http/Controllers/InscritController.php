@@ -5,6 +5,7 @@ use App\Models\Inscrit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Apprenant;
+use App\Models\Formation; 
 
 class InscritController extends Controller
 {
@@ -84,6 +85,13 @@ class InscritController extends Controller
 
         $apprenantId = $user->id; // user_id est la PK dans apprenants
 
+         // Vérifier si la formation existe et n’est pas expirée
+    $formation = Formation::findOrFail($validated['formation_id']);
+    if ($formation->date_fin < now()) {
+        return response()->json(['message' => 'Impossible de s\'inscrire, la formation est déjà expirée.'], 400);
+    }
+
+
         // Vérifier si déjà inscrit
         $exists = Inscrit::where('apprenant_id', $apprenantId)
             ->where('formation_id', $validated['formation_id'])
@@ -110,6 +118,11 @@ class InscritController extends Controller
             'apprenant_id' => 'required|exists:apprenants,user_id',
             'formation_id' => 'required|exists:formations,id',
         ]);
+        // Vérifier si la formation n’est pas expirée
+    $formation = Formation::findOrFail($validated['formation_id']);
+    if ($formation->date_fin < now()) {
+        return response()->json(['message' => 'Impossible d\'inscrire : la formation est expirée.'], 400);
+    }
         // Vérifier si l'inscription existe déjà
         $exists = Inscrit::where('apprenant_id', $validated['apprenant_id'])
                          ->where('formation_id', $validated['formation_id'])
