@@ -35,7 +35,7 @@ class Apprenant extends Model
     }
     public function examens()
     {
-        return $this->belongsToMany(Examen::class, 'examens_apprenants')
+        return $this->belongsToMany(Examen::class, 'examens_apprenants', 'apprenant_id', 'examen_id')
                     ->withPivot('note', 'statut', 'date_passage')
                     ->withTimestamps();
     }

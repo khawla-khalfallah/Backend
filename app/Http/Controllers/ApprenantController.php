@@ -122,27 +122,70 @@ class ApprenantController extends Controller
         }
     }
 
-    public function search(Request $request)
-    {
-        $q = $request->query('q');
-        $querySearch = array_map('trim', explode(',', $q)); // ['angular', 'react']
+    // public function search(Request $request)
+    // {
+    //     $q = $request->query('q');
+    //     $querySearch = array_map('trim', explode(',', $q)); // ['angular', 'react']
 
-        $apprenants = Apprenant::query();
+    //     $apprenants = Apprenant::query();
 
-        // On ajoute un whereHas pour chaque mot-clé
+    //     // On ajoute un whereHas pour chaque mot-clé
+    //     foreach ($querySearch as $term) {
+    //         $apprenants->whereHas('inscrits.formation', function ($query) use ($term) {
+    //             $query->where('titre', 'like', '%' . $term . '%');
+    //         });
+    //     }
+
+    //     // On charge les relations
+    //     $apprenants = $apprenants->with([
+    //         'user',
+    //         'inscrits.formation'
+    //     ])->get();
+
+    //     return response()->json($apprenants);
+    // }
+public function search(Request $request)
+{
+    $q = $request->query('q');
+    $querySearch = array_map('trim', explode(',', $q)); // ['python', 'angular']
+
+    // Récupérer les apprenants inscrits aux formations recherchées
+    $apprenants = Apprenant::whereHas('inscrits.formation', function ($query) use ($querySearch) {
         foreach ($querySearch as $term) {
-            $apprenants->whereHas('inscrits.formation', function ($query) use ($term) {
-                $query->where('titre', 'like', '%' . $term . '%');
-            });
+            $query->where('titre', 'like', '%' . $term . '%');
+        }
+    })->with([
+        'user',
+        'inscrits.formation',
+        'examens' => function($query) use ($querySearch) {
+            $query->with('formation'); // pour accéder au titre de la formation
+        }
+    ])->get();
+
+    // Ajouter la note d'examen correspondant à la formation recherchée
+    $apprenants->map(function($apprenant) use ($querySearch) {
+        $note = null;
+
+        foreach ($apprenant->examens as $examen) {
+            if ($examen->formation && in_array(strtolower($examen->formation->titre), array_map('strtolower', $querySearch))) {
+                $note = $examen->pivot->note;
+                break;
+            }
         }
 
-        // On charge les relations
-        $apprenants = $apprenants->with([
-            'user',
-            'inscrits.formation'
-        ])->get();
+        $apprenant->note_examen = $note; // null si pas passé
+        return $apprenant;
+    });
 
-        return response()->json($apprenants);
-    }
+    // Trier : notes décroissantes, puis les non-passés à la fin
+    $apprenants = $apprenants->sort(function($a, $b) {
+        if (is_null($a->note_examen) && is_null($b->note_examen)) return 0;
+        if (is_null($a->note_examen)) return 1;
+        if (is_null($b->note_examen)) return -1;
+        return $b->note_examen <=> $a->note_examen;
+    })->values();
+
+    return response()->json($apprenants);
+}
 
 }

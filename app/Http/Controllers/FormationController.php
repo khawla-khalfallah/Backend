@@ -38,7 +38,10 @@ class FormationController extends Controller
             'date_fin' => 'nullable|date|after_or_equal:date_debut',
             'formateur_id' => 'required|exists:formateurs,user_id',
         ]);
-
+ // Vérification que date_fin >= aujourd'hui
+    if (!empty($validated['date_fin']) && $validated['date_fin'] < now()->toDateString()) {
+        return response()->json(['message' => 'La date de fin doit être supérieure ou égale à aujourd’hui.'], 422);
+    }
         $formation = Formation::create($validated);
         return response()->json($formation, 201);
     }
@@ -73,6 +76,11 @@ class FormationController extends Controller
             'date_debut' => 'nullable|date',
             'date_fin' => 'nullable|date|after_or_equal:date_debut',
         ]);
+         // Vérification que date_fin >= aujourd'hui
+    if (!empty($validated['date_fin']) && $validated['date_fin'] < now()->toDateString()) {
+        return response()->json(['message' => 'La date de fin doit être supérieure ou égale à aujourd’hui.'], 422);
+    }
+
 
         $formation->update($validated);
         return response()->json($formation);
@@ -91,11 +99,41 @@ class FormationController extends Controller
         return response()->json(['message' => 'Formation supprimée avec succès.']);
     }
 
+    // public function getApprenants($id)
+    // {
+    //     $formation = Formation::with('apprenants.user')->findOrFail($id);
+    //     return response()->json($formation->apprenants);
+    // }
+
     public function getApprenants($id)
-    {
-        $formation = Formation::with('apprenants.user')->findOrFail($id);
-        return response()->json($formation->apprenants);
-    }
+{
+    $formation = Formation::with([
+        'apprenants.user',
+        'apprenants.examens' => function ($query) use ($id) {
+            $query->where('formation_id', $id); // récupérer examens liés à cette formation
+        }
+    ])->findOrFail($id);
+
+    // Transformer la réponse pour inclure directement la note
+    $apprenants = $formation->apprenants->map(function ($apprenant) {
+        $note = null;
+
+        // Vérifier la note dans la pivot "examens_apprenants"
+        if ($apprenant->examens->isNotEmpty()) {
+            $note = $apprenant->examens->first()->pivot->note;
+        }
+
+        return [
+            'id' => $apprenant->id,
+            'nom' => $apprenant->user->nom,
+            'prenom' => $apprenant->user->prenom,
+            'email' => $apprenant->user->email,
+            'note' => $note
+        ];
+    });
+
+    return response()->json($apprenants);
+}
 
     public function chercherParTitre(Request $request)
     {
