@@ -131,7 +131,10 @@ class FormationController extends Controller
             'note' => $note
         ];
     });
-
+ // ✅ Trier par note (les nulls passent en bas)
+    $apprenants = $apprenants->sortByDesc(function ($a) {
+        return $a['note'] ?? -1; // si note null → traité comme -1
+    })->values(); // values() pour réindexer proprement
     return response()->json($apprenants);
 }
 

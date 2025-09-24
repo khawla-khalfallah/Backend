@@ -147,45 +147,65 @@ class ApprenantController extends Controller
 public function search(Request $request)
 {
     $q = $request->query('q');
-    $querySearch = array_map('trim', explode(',', $q)); // ['python', 'angular']
+    $querySearch = array_map('trim', explode(',', $q)); // ex: ['laravel', 'python']
 
-    // Récupérer les apprenants inscrits aux formations recherchées
-    $apprenants = Apprenant::whereHas('inscrits.formation', function ($query) use ($querySearch) {
+    $apprenants = Apprenant::with(['user', 'examens.formation']);
+
+    // 👉 Si on recherche par formation
+    if (!empty($q)) {
         foreach ($querySearch as $term) {
-            $query->where('titre', 'like', '%' . $term . '%');
+            $apprenants->whereHas('inscrits.formation', function ($query) use ($term) {
+                $query->where('titre', 'like', '%' . $term . '%');
+            });
         }
-    })->with([
-        'user',
-        'inscrits.formation',
-        'examens' => function($query) use ($querySearch) {
-            $query->with('formation'); // pour accéder au titre de la formation
-        }
-    ])->get();
+    }
 
-    // Ajouter la note d'examen correspondant à la formation recherchée
-    $apprenants->map(function($apprenant) use ($querySearch) {
-        $note = null;
+    $apprenants = $apprenants->get();
+
+    $result = $apprenants->map(function ($apprenant) use ($querySearch, $q) {
+        $notes = [];
 
         foreach ($apprenant->examens as $examen) {
-            if ($examen->formation && in_array(strtolower($examen->formation->titre), array_map('strtolower', $querySearch))) {
-                $note = $examen->pivot->note;
-                break;
+            if ($examen->formation) {
+                // 👉 Cas recherche par formation : on garde uniquement les notes correspondantes
+                if (!empty($q)) {
+                    foreach ($querySearch as $term) {
+                        if (stripos($examen->formation->titre, $term) !== false) {
+                            $notes[$examen->formation->titre] = $examen->pivot->note ?? null;
+                        }
+                    }
+                } else {
+                    // 👉 Cas général : toutes les notes
+                    $notes[$examen->formation->titre] = $examen->pivot->note ?? null;
+                }
             }
         }
 
-        $apprenant->note_examen = $note; // null si pas passé
-        return $apprenant;
+        return [
+            'user_id' => $apprenant->user->id,
+            'nom' => $apprenant->user->nom,
+            'prenom' => $apprenant->user->prenom,
+            'email' => $apprenant->user->email,
+            'niveau_etude' => $apprenant->niveau_etude,
+            'notes' => $notes
+        ];
     });
 
-    // Trier : notes décroissantes, puis les non-passés à la fin
-    $apprenants = $apprenants->sort(function($a, $b) {
-        if (is_null($a->note_examen) && is_null($b->note_examen)) return 0;
-        if (is_null($a->note_examen)) return 1;
-        if (is_null($b->note_examen)) return -1;
-        return $b->note_examen <=> $a->note_examen;
-    })->values();
+    // 👉 Tri
+    if (!empty($q)) {
+        // Si recherche → trier par note de la formation
+        $result = $result->sortByDesc(function ($a) {
+            if (empty($a['notes'])) return -1;
+            return collect($a['notes'])->first(); // une seule note par formation
+        })->values();
+    } else {
+        // Sinon → trier par moyenne de toutes les notes
+        $result = $result->sortByDesc(function ($a) {
+            if (empty($a['notes'])) return -1;
+            return collect($a['notes'])->avg();
+        })->values();
+    }
 
-    return response()->json($apprenants);
+    return response()->json($result);
 }
-
 }
