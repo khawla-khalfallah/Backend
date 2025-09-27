@@ -121,29 +121,75 @@ class PdfController extends Controller
     // 📌 Ajouter un PDF
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'titre' => 'required|string|max:255',
-            'fichier' => 'required|file|mimes:pdf|max:102400',
-            'formation_id' => 'required|exists:formations,id',
-        ]);
+        try {
+            // Debug logging
+            \Log::info('PDF Store Request', [
+                'user_id' => $request->user() ? $request->user()->id : null,
+                'user_role' => $request->user() ? $request->user()->role : null,
+                'request_data' => $request->all(),
+                'has_file' => $request->hasFile('fichier'),
+            ]);
 
-        $user = $request->user();
-        $formation = Formation::findOrFail($validated['formation_id']);
+            $user = $request->user();
+            if (!$user) {
+                \Log::error('PDF Store: No authenticated user');
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
 
-        if ($formation->formateur_id !== $user->id) {
-            return response()->json(['error' => 'Non autorisé'], 403);
+            if ($user->role !== 'formateur') {
+                \Log::error('PDF Store: User is not formateur', ['user_role' => $user->role]);
+                return response()->json(['error' => 'Seuls les formateurs peuvent ajouter des PDFs'], 403);
+            }
+
+            // Check formateur status
+            $formateur = \App\Models\Formateur::where('user_id', $user->id)->first();
+            if (!$formateur) {
+                \Log::error('PDF Store: Formateur profile not found', ['user_id' => $user->id]);
+                return response()->json(['error' => 'Profil formateur non trouvé'], 404);
+            }
+
+            if ($formateur->status !== 'accepte') {
+                \Log::error('PDF Store: Formateur not accepted', ['status' => $formateur->status]);
+                return response()->json(['error' => 'Votre compte formateur doit être accepté pour ajouter des PDFs'], 403);
+            }
+
+            $validated = $request->validate([
+                'titre' => 'required|string|max:255',
+                'fichier' => 'required|file|mimes:pdf|max:102400',
+                'formation_id' => 'required|exists:formations,id',
+            ]);
+
+            $formation = Formation::findOrFail($validated['formation_id']);
+
+            if ($formation->formateur_id !== $user->id) {
+                \Log::error('PDF Store: Formation does not belong to user', [
+                    'formation_id' => $formation->id,
+                    'formation_formateur_id' => $formation->formateur_id,
+                    'user_id' => $user->id
+                ]);
+                return response()->json(['error' => 'Cette formation ne vous appartient pas'], 403);
+            }
+
+            $filePath = $request->file('fichier')
+                ->storeAs('pdfs', $request->file('fichier')->getClientOriginalName(), 'public');
+
+            $pdf = Pdf::create([
+                'titre' => $validated['titre'],
+                'fichier' => $filePath,
+                'formation_id' => $formation->id,
+            ]);
+
+            \Log::info('PDF Store: Success', ['pdf_id' => $pdf->id]);
+
+            return response()->json($pdf, 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('PDF Store: Validation failed', ['errors' => $e->errors()]);
+            return response()->json(['error' => 'Données invalides', 'details' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            \Log::error('PDF Store: Exception', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Erreur serveur: ' . $e->getMessage()], 500);
         }
-
-        $filePath = $request->file('fichier')
-            ->storeAs('pdfs', $request->file('fichier')->getClientOriginalName(), 'public');
-
-        $pdf = Pdf::create([
-            'titre' => $validated['titre'],
-            'fichier' => $filePath,
-            'formation_id' => $formation->id,
-        ]);
-
-        return response()->json($pdf, 201);
     }
 
     // 📌 Modifier un PDF

@@ -202,5 +202,166 @@ class FormateurController extends Controller
             
                 return response()->json(['message' => 'Formateur et utilisateur supprimés avec succès']);
             }
+
+    /**
+     * Admin: Get CV file for viewing/downloading
+     */
+    public function downloadCV($id)
+    {
+        try {
+            $formateur = Formateur::with('user')->findOrFail($id);
+            
+            if (!$formateur->cv) {
+                return response()->json(['message' => 'Aucun CV trouvé pour ce formateur'], 404);
+            }
+
+            $filePath = storage_path('app/public/' . $formateur->cv);
+            
+            if (!file_exists($filePath)) {
+                return response()->json(['message' => 'Fichier CV introuvable sur le serveur'], 404);
+            }
+
+            $fileName = $formateur->user->nom . '_' . $formateur->user->prenom . '_CV.' . pathinfo($filePath, PATHINFO_EXTENSION);
+
+            return response()->download($filePath, $fileName, [
+                'Content-Type' => 'application/pdf',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors du téléchargement du CV', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Admin: View CV in browser
+     */
+    public function viewCV($id)
+    {
+        try {
+            $formateur = Formateur::with('user')->findOrFail($id);
+            
+            if (!$formateur->cv) {
+                return response()->json(['message' => 'Aucun CV trouvé pour ce formateur'], 404);
+            }
+
+            $filePath = storage_path('app/public/' . $formateur->cv);
+            
+            if (!file_exists($filePath)) {
+                return response()->json(['message' => 'Fichier CV introuvable sur le serveur'], 404);
+            }
+
+            $mimeType = mime_content_type($filePath);
+
+            return response()->file($filePath, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors de la consultation du CV', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Admin: Get formateurs with CV status for management
+     */
+    public function getFormateursWithCVStatus()
+    {
+        try {
+            $formateurs = Formateur::with('user')
+                ->select('user_id', 'specialite', 'bio', 'cv', 'status', 'remarque', 'created_at', 'updated_at')
+                ->get()
+                ->map(function ($formateur) {
+                    return [
+                        'id' => $formateur->user_id,
+                        'nom' => $formateur->user->nom,
+                        'prenom' => $formateur->user->prenom,
+                        'email' => $formateur->user->email,
+                        'specialite' => $formateur->specialite,
+                        'bio' => $formateur->bio,
+                        'status' => $formateur->status,
+                        'remarque' => $formateur->remarque,
+                        'has_cv' => !is_null($formateur->cv),
+                        'cv_filename' => $formateur->cv ? basename($formateur->cv) : null,
+                        'cv_url' => $formateur->cv ? Storage::url($formateur->cv) : null,
+                        'cv_size' => $formateur->cv && Storage::disk('public')->exists($formateur->cv) 
+                            ? Storage::disk('public')->size($formateur->cv) 
+                            : null,
+                        'inscription_date' => $formateur->created_at,
+                        'last_update' => $formateur->updated_at,
+                    ];
+                });
+
+            return response()->json([
+                'formateurs' => $formateurs,
+                'stats' => [
+                    'total' => $formateurs->count(),
+                    'with_cv' => $formateurs->where('has_cv', true)->count(),
+                    'without_cv' => $formateurs->where('has_cv', false)->count(),
+                    'en_attente' => $formateurs->where('status', 'en_attente')->count(),
+                    'accepte' => $formateurs->where('status', 'accepte')->count(),
+                    'refuse' => $formateurs->where('status', 'refuse')->count(),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors de la récupération des formateurs', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Admin: Get detailed CV info
+     */
+    public function getCVInfo($id)
+    {
+        try {
+            $formateur = Formateur::with('user')->findOrFail($id);
+            
+            if (!$formateur->cv) {
+                return response()->json(['message' => 'Aucun CV trouvé pour ce formateur'], 404);
+            }
+
+            $filePath = storage_path('app/public/' . $formateur->cv);
+            $fileExists = file_exists($filePath);
+            
+            return response()->json([
+                'formateur_info' => [
+                    'id' => $formateur->user_id,
+                    'nom' => $formateur->user->nom,
+                    'prenom' => $formateur->user->prenom,
+                    'email' => $formateur->user->email,
+                    'specialite' => $formateur->specialite,
+                    'status' => $formateur->status,
+                ],
+                'cv_info' => [
+                    'filename' => basename($formateur->cv),
+                    'path' => $formateur->cv,
+                    'url' => Storage::url($formateur->cv),
+                    'size_bytes' => $fileExists ? filesize($filePath) : null,
+                    'size_human' => $fileExists ? $this->formatBytes(filesize($filePath)) : null,
+                    'mime_type' => $fileExists ? mime_content_type($filePath) : null,
+                    'file_exists' => $fileExists,
+                    'last_modified' => $fileExists ? date('Y-m-d H:i:s', filemtime($filePath)) : null,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors de la récupération des informations du CV', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Helper function to format file size
+     */
+    private function formatBytes($size, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        
+        for ($i = 0; $size > 1024 && $i < count($units) - 1; $i++) {
+            $size /= 1024;
+        }
+        
+        return round($size, $precision) . ' ' . $units[$i];
+    }
     
 }
