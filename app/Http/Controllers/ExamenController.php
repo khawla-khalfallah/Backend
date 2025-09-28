@@ -9,6 +9,10 @@ use App\Models\ReponseApprenant;
 use App\Models\Apprenant;
 use App\Models\Formation;
 use App\Models\Inscrit;
+use App\Models\CertificationTemplate;
+use App\Models\Certificat;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -612,15 +616,25 @@ class ExamenController extends Controller
                 'statut' => 'termine'
             ]);
 
+            // Check for automatic certification generation
+            $certificatGenerated = $this->checkAndGenerateCertification($examen, $apprenant, $note);
+
             DB::commit();
 
-            return response()->json([
+            $response = [
                 'message' => 'Exam submitted successfully',
                 'total_score' => $totalScore,
                 'total_possible' => $examen->total_marks,
                 'percentage' => $percentage,
                 'note' => $note
-            ]);
+            ];
+
+            if ($certificatGenerated) {
+                $response['certificat_generated'] = true;
+                $response['message'] .= ' Félicitations! Vous avez obtenu votre certification.';
+            }
+
+            return response()->json($response);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -676,6 +690,121 @@ class ExamenController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to check exam status: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Check if apprenant qualifies for certification and generate it automatically
+     */
+    private function checkAndGenerateCertification(Examen $examen, Apprenant $apprenant, float $note): bool
+    {
+        try {
+            // Find active certification template for this exam
+            $template = CertificationTemplate::where('formation_id', $examen->formation_id)
+                ->where(function($query) use ($examen) {
+                    $query->where('examen_id', $examen->id)
+                          ->orWhereNull('examen_id'); // Template for any exam in the formation
+                })
+                ->where('is_active', true)
+                ->orderBy('examen_id') // Prefer specific exam templates over general ones
+                ->first();
+
+            if (!$template) {
+                return false; // No certification template found
+            }
+
+            // Check if apprenant meets the minimum score requirement
+            if ($note < $template->score_minimum) {
+                return false; // Score not sufficient
+            }
+
+            // Check if certificate already exists
+            $existingCertificat = Certificat::where('apprenant_id', $apprenant->user_id)
+                ->where('formation_id', $examen->formation_id)
+                ->where('certification_template_id', $template->id)
+                ->exists();
+
+            if ($existingCertificat) {
+                return false; // Certificate already exists
+            }
+
+            // Generate the certificate
+            $certificat = Certificat::create([
+                'apprenant_id' => $apprenant->user_id,
+                'formation_id' => $examen->formation_id,
+                'formateur_id' => $examen->formateur_id,
+                'certification_template_id' => $template->id,
+                'titre_certification' => $template->titre_certification,
+                'note_examen' => $note,
+                'date_obtention' => now(),
+            ]);
+
+            // Generate PDF certificate
+            $this->generateCertificatePdf($certificat);
+
+            return true;
+
+        } catch (\Exception $e) {
+            // Log error but don't fail the exam submission
+            \Log::error('Failed to generate automatic certification: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Generate PDF for a certificate
+     */
+    private function generateCertificatePdf(Certificat $certificat): void
+    {
+        try {
+            // Load all required relationships
+            $certificat->load([
+                'apprenant.user', 
+                'formation', 
+                'formateur.user',
+                'certificationTemplate'
+            ]);
+
+            $data = [
+                'certificat' => $certificat,
+                'apprenant' => $certificat->apprenant,
+                'user' => $certificat->apprenant->user,
+                'formation' => $certificat->formation,
+                'formateur' => $certificat->formateur->user,
+                'date_generation' => now(),
+                'platform_name' => 'Dream Learn'
+            ];
+
+            $pdf = Pdf::loadView('certificates.simple-template', $data)
+                ->setPaper('A4', 'landscape')
+                ->setOptions([
+                    'dpi' => 150,
+                    'defaultFont' => 'sans-serif',
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true
+                ]);
+            
+            // Save PDF
+            $fileName = 'certificate_' . $certificat->id . '_' . time() . '.pdf';
+            $path = 'certificates/' . $fileName;
+            
+            // Ensure certificates directory exists
+            if (!Storage::exists('certificates')) {
+                Storage::makeDirectory('certificates');
+            }
+            
+            Storage::put($path, $pdf->output());
+            
+            // Update certificate with PDF path
+            $certificat->update(['pdf_path' => $path]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to generate certificate PDF: ' . $e->getMessage());
+            \Log::error('Certificate generation failed', [
+                'certificate_id' => $certificat->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 }

@@ -284,6 +284,33 @@ class PdfController extends Controller
 // }
 
 
+    // 📌 Télécharger un PDF
+    public function download($id)
+    {
+        try {
+            $pdf = Pdf::findOrFail($id);
+            
+            if (!$pdf->fichier) {
+                return response()->json(['message' => 'Aucun fichier PDF trouvé'], 404);
+            }
+
+            $filePath = storage_path('app/public/' . $pdf->fichier);
+            
+            if (!file_exists($filePath)) {
+                return response()->json(['message' => 'Fichier PDF introuvable sur le serveur'], 404);
+            }
+
+            $fileName = $pdf->titre . '.pdf';
+
+            return response()->download($filePath, $fileName, [
+                'Content-Type' => 'application/pdf',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors du téléchargement du PDF', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     // 📌 Supprimer un PDF
     public function destroy(Request $request, $id)
     {

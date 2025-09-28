@@ -10,6 +10,8 @@ use App\Http\Controllers\RecruteurController;
 use App\Http\Controllers\AdministrateurController;
 use App\Http\Controllers\ExamenController;
 use App\Http\Controllers\CertificatController;
+use App\Http\Controllers\FormateurCertificationController;
+use App\Http\Controllers\ApprenantCertificationController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\SeanceController;
 use App\Http\Controllers\VideoController;
@@ -125,6 +127,30 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
+    // Certification routes for formateurs
+    Route::prefix('formateur/certifications')->group(function () {
+        // Template management
+        Route::get('/templates', [FormateurCertificationController::class, 'getTemplates']);
+        Route::post('/templates', [FormateurCertificationController::class, 'storeTemplate']);
+        
+        // Generated certificates
+        Route::get('/certificates', [FormateurCertificationController::class, 'index']);
+        Route::get('/certificates/{id}/download', [FormateurCertificationController::class, 'downloadPdf']);
+        
+        // Formations data
+        Route::get('/formations', [FormateurCertificationController::class, 'getFormationsWithCertifications']);
+        
+        // Statistics
+        Route::get('/stats', [FormateurCertificationController::class, 'getStats']);
+    });
+
+    // Certification routes for apprenants
+    Route::prefix('apprenant/certifications')->group(function () {
+        Route::get('/', [ApprenantCertificationController::class, 'index']);
+        Route::get('/{id}', [ApprenantCertificationController::class, 'show']);
+        Route::get('/{id}/download', [ApprenantCertificationController::class, 'downloadPdf']);
+    });
+
     // Ressources API
     Route::apiResource('certificats', CertificatController::class);
     Route::apiResource('examens', ExamenController::class);
@@ -132,6 +158,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/examens/{id}/passer', [ExamenController::class, 'passer']);
     Route::get('/examens/{id}/status', [ExamenController::class, 'hasUserTakenExam']);
     Route::apiResource('pdfs', PdfController::class);
+    Route::get('pdfs/{id}/download', [PdfController::class, 'download']);
     Route::apiResource('seances', SeanceController::class);
     Route::apiResource('videos', VideoController::class);
     Route::apiResource('administrateurs', AdministrateurController::class);

@@ -47,8 +47,17 @@ class Formation extends Model
     {
         return $this->hasMany(Pdf::class, 'formation_id');
     }
-    
 
+    public function certificats()
+    {
+        return $this->hasMany(Certificat::class, 'formation_id');
+    }
+
+    public function certificationTemplates()
+    {
+        return $this->hasMany(CertificationTemplate::class, 'formation_id');
+    }
+    
     public function evaluations()
     {
         return $this->hasMany(Evaluation::class);

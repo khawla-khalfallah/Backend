@@ -23,4 +23,9 @@ class Formateur extends Model
     {
         return $this->hasMany(Formation::class, 'formateur_id');
     }
+
+    public function certificats()
+    {
+        return $this->hasMany(Certificat::class, 'formateur_id', 'user_id');
+    }
 }
