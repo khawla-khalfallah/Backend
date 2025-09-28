@@ -19,5 +19,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Seed certification templates (run this after formations are seeded)
+        $this->call([
+            CertificationTemplateSeeder::class,
+        ]);
     }
 }

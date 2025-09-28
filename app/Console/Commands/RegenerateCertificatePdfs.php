@@ -12,7 +12,7 @@ class RegenerateCertificatePdfs extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'certificates:regenerate-pdfs';
+    protected $signature = 'certificates:regenerate';
 
     /**
      * The console command description.
@@ -85,7 +85,7 @@ class RegenerateCertificatePdfs extends Command
             'platform_name' => 'Dream Learn'
         ];
 
-        $pdf = Pdf::loadView('certificates.oracle-style-template', $data)
+        $pdf = Pdf::loadView('certificates.simple-template', $data)
             ->setPaper('A4', 'landscape')
             ->setOptions([
                 'dpi' => 150,

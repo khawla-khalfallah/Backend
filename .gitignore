@@ -5,6 +5,13 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/certificates/*.pdf
+/storage/app/pdfs/*
+/storage/app/videos/*
+!/storage/app/.gitkeep
+!/storage/app/certificates/.gitkeep
+!/storage/app/pdfs/.gitkeep
+!/storage/app/videos/.gitkeep
 /vendor
 .env
 .env.backup
