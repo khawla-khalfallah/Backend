@@ -99,12 +99,6 @@ class FormationController extends Controller
         return response()->json(['message' => 'Formation supprimée avec succès.']);
     }
 
-    // public function getApprenants($id)
-    // {
-    //     $formation = Formation::with('apprenants.user')->findOrFail($id);
-    //     return response()->json($formation->apprenants);
-    // }
-
     public function getApprenants($id)
 {
     $formation = Formation::with([

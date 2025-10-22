@@ -121,29 +121,6 @@ class ApprenantController extends Controller
             ], 500);
         }
     }
-
-    // public function search(Request $request)
-    // {
-    //     $q = $request->query('q');
-    //     $querySearch = array_map('trim', explode(',', $q)); // ['angular', 'react']
-
-    //     $apprenants = Apprenant::query();
-
-    //     // On ajoute un whereHas pour chaque mot-clé
-    //     foreach ($querySearch as $term) {
-    //         $apprenants->whereHas('inscrits.formation', function ($query) use ($term) {
-    //             $query->where('titre', 'like', '%' . $term . '%');
-    //         });
-    //     }
-
-    //     // On charge les relations
-    //     $apprenants = $apprenants->with([
-    //         'user',
-    //         'inscrits.formation'
-    //     ])->get();
-
-    //     return response()->json($apprenants);
-    // }
 public function search(Request $request)
 {
     $q = $request->query('q');

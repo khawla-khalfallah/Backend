@@ -31,20 +31,9 @@ class FormateurController extends Controller
 
     return response()->json($formateurs);
 }
-      // Créer un formateur
-    //   public function store(Request $request)
-    //   {
-    //       $validated = $request->validate([
-    //           'user_id' => 'required|exists:users,id|unique:formateurs,user_id',
-    //           'specialite' => 'nullable|string|max:100',
-    //           'bio' => 'nullable|string',
-    //       ]);
-  
-    //       $formateur = Formateur::create($validated);
-    //       return response()->json($formateur, 201);
-    //   }
-            // Créer un formateur (avec création de user)
-            public function store(Request $request)
+   
+    // Créer un formateur (avec création de user)
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'nom' => 'required|string|max:50|regex:/^[a-zA-ZÀ-ÿ\s]+$/',
@@ -82,16 +71,6 @@ class FormateurController extends Controller
 
         return response()->json($formateur->load('user'), 201);
     }
-
-
-  
-      // Afficher un formateur spécifique
-            // public function show($id)
-            // {
-            //     $formateur = Formateur::with(['user', 'formations'])->findOrFail($id);
-            //     return response()->json($formateur);
-            // }
-
          // Afficher un formateur spécifique
             public function show($id)
             {
@@ -106,18 +85,6 @@ class FormateurController extends Controller
 
   
       // Mettre à jour un formateur
-    //   public function update(Request $request, $id)
-    //   {
-    //       $formateur = Formateur::findOrFail($id);
-  
-    //       $validated = $request->validate([
-    //           'specialite' => 'nullable|string|max:100',
-    //           'bio' => 'nullable|string',
-    //       ]);
-  
-    //       $formateur->update($validated);
-    //       return response()->json($formateur);
-    //   }
             public function update(Request $request, $id)
             {
                 $formateur = Formateur::with('user')->findOrFail($id);
@@ -183,11 +150,6 @@ class FormateurController extends Controller
                     
             
       // Supprimer un formateur
-    //   public function destroy($id)
-    //   {
-    //       Formateur::destroy($id);
-    //       return response()->json(['message' => 'Formateur supprimé avec succès']);
-    //   }
             public function destroy($id)
             {
                 $formateur = Formateur::findOrFail($id);

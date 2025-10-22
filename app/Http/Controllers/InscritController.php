@@ -9,31 +9,6 @@ use App\Models\Formation;
 
 class InscritController extends Controller
 {
-    
-    // public function index()
-    // {
-    //     return Inscrit::with(['apprenant.user', 'formation'])->get();
-    // }
-    // public function index()
-    // {
-        // $user = 1;//Auth::user();
-        
-        // // Vérifie si l'utilisateur est un apprenant
-        // if (!$user->apprenant) {
-        //     return response()->json(['message' => 'Accès réservé aux apprenants.'], 403);
-        // }
-        // $aprenantConnected = 1; // twalli fonction kifeh tejbed connecté
-        // Récupère les formations de l'apprenant connecté
-    //     return Inscrit::with('formation')
-    //         ->where('apprenant_id', $aprenantConnected)//$user->apprenant->id)
-    //         ->get()
-    //         ->map(function($inscription) {
-    //             return [
-    //                 'formation' => $inscription->formation,
-    //                 'date_inscription' => $inscription->created_at->format('Y-m-d H:i:s')
-    //             ];
-    //         });
-    // }
     public function index()
     {
         return Inscrit::with(['apprenant.user', 'formation'])->get()
